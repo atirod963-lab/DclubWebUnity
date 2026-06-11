@@ -8,12 +8,15 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
-  - enabled: 1
+  - enabled: 0
     path: Assets/Por (menu week01)/Scenes/menu.unity
     guid: 6dbec37d630b5fe4d8a5b30528da3a98
-  - enabled: 1
+  - enabled: 0
     path: Assets/Por (menu week01)/Scenes/GameScene.unity
     guid: b36c806753a82f84f85ea0ac0d64f8f6
+  - enabled: 1
+    path: Assets/Scenes/Test Kong.unity
+    guid: dd954813e22d9c540bf65004eb55158d
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
