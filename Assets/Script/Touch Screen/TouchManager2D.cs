@@ -1,8 +1,32 @@
 using UnityEngine;
+using TMPro; // 1. ต้องเพิ่มการเรียกใช้ Namespace นี้เพื่อควบคุม TextMesh Pro
 
 public class TouchManager2D : MonoBehaviour
 {
+    public static TouchManager2D Instance;
     public int score = 0;
+    public TextMeshProUGUI scoreText;
+
+    void Awake()
+    {
+        // เช็คว่ามี TouchManager2D ตัวอื่นอยู่ในระบบหรือยัง
+        if (Instance == null)
+        {
+            Instance = this; // กำหนดให้ตัวนี้คือตัวหลัก
+            DontDestroyOnLoad(gameObject); // สั่งไม่ให้ทำลายเมื่อเปลี่ยน Scene
+        }
+        else
+        {
+            // ถ้ามีตัวหลักอยู่แล้ว และกำลังจะสร้างตัวซ้ำ ให้ทำลายตัวซ้ำทิ้งซะ
+            Destroy(gameObject);
+        }
+    }
+
+    void Start()
+    {
+        // อัปเดตคะแนนเริ่มต้น (0) โชว์บนหน้าจอต้อนรับตอนเริ่มเกม
+        UpdateScoreUI();
+    }
 
     void Update()
     {
@@ -26,31 +50,47 @@ public class TouchManager2D : MonoBehaviour
     // ฟังก์ชันตรวจจับการแตะสำหรับ 2D
     void CheckTouch2D(Vector3 screenPosition)
     {
-        // แปลงพิกัดจากหน้าจอ (Screen Space) ให้เป็นพิกัดในเกม (World Space)
         Vector3 worldPosition = Camera.main.ScreenToWorldPoint(screenPosition);
-
-        // ตัดแกน Z ทิ้งไป เพราะเราทำเกม 2D
         Vector2 touchPosition2D = new Vector2(worldPosition.x, worldPosition.y);
 
-        // เช็คว่าจุดที่แตะ มี Collider 2D ตัวไหนวางอยู่ตรงนั้นไหม
         Collider2D hitCollider = Physics2D.OverlapPoint(touchPosition2D);
 
-        // ถ้าแตะโดนวัตถุที่มี Collider 2D
         if (hitCollider != null)
         {
-            // ตรวจสอบ Tag ว่าใช่ของที่ได้คะแนนหรือไม่
-            if (hitCollider.CompareTag("GotScore"))
+            if (hitCollider.CompareTag("Healthy Food"))
             {
-                score += 10;
+                score += 1;
                 Debug.Log("แตะโดนเป้าหมาย! แต้มรวม: " + score);
 
-                // ทำลายวัตถุ หรือสั่งให้มันหายไป
+                // 3. เรียกใช้ฟังก์ชันอัปเดตตัวเลขบนหน้าจอทุกครั้งที่คะแนนเปลี่ยน
+                UpdateScoreUI();
+
+                Destroy(hitCollider.gameObject);
+            }
+            else if (hitCollider.CompareTag("Junk Food"))
+            {
+                score -= 1; // ปรับให้เขียนเข้าใจง่ายขึ้น
+                Debug.Log("แตะโดนเป้าหมาย! แต้มรวม: " + score);
+
+                // 3. เรียกใช้ฟังก์ชันอัปเดตตัวเลขบนหน้าจอทุกครั้งที่คะแนนเปลี่ยน
+                UpdateScoreUI();
+
                 Destroy(hitCollider.gameObject);
             }
             else
             {
                 Debug.Log("แตะโดนวัตถุอื่นที่ไม่ได้แต้ม");
             }
+        }
+    }
+
+    // 4. ฟังก์ชันสำหรับสั่งเปลี่ยนข้อความบนหน้าจอเกม
+    void UpdateScoreUI()
+    {
+        // เช็คความปลอดภัยก่อนว่าเราได้ลากเลเยอร์ Text มาใส่ใน Inspector หรือยังเพื่อป้องกัน Error
+        if (scoreText != null)
+        {
+            scoreText.text = "Score: " + score;
         }
     }
 }

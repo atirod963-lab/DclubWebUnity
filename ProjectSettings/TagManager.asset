@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 3
   tags:
   - GotScore
+  - Junk Food
+  - Healthy Food
   layers:
   - Default
   - TransparentFX
