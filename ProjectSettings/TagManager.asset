@@ -7,6 +7,7 @@ TagManager:
   - GotScore
   - Junk Food
   - Healthy Food
+  - Hoop
   layers:
   - Default
   - TransparentFX

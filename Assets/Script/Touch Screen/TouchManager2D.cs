@@ -50,11 +50,17 @@ public class TouchManager2D : MonoBehaviour
     // ฟังก์ชันตรวจจับการแตะสำหรับ 2D
     void CheckTouch2D(Vector3 screenPosition)
     {
+        // 1. [ส่วนที่เพิ่มใหม่] ดึงระยะห่างจากกล้องถึงระนาบ 2D แล้วยัดใส่แกน Z ก่อน
+        float distanceToCamera = Mathf.Abs(Camera.main.transform.position.z);
+        screenPosition.z = distanceToCamera;
+
+        // 2. แปลงพิกัด (คราวนี้จะกางออกพอดีเป๊ะเต็มหน้าจอ 100%)
         Vector3 worldPosition = Camera.main.ScreenToWorldPoint(screenPosition);
         Vector2 touchPosition2D = new Vector2(worldPosition.x, worldPosition.y);
 
         Collider2D hitCollider = Physics2D.OverlapPoint(touchPosition2D);
 
+        // ... (โค้ดส่วนเช็ค Tag และให้คะแนนด้านล่างเก็บไว้เหมือนเดิมครับ) ...
         if (hitCollider != null)
         {
             if (hitCollider.CompareTag("Healthy Food"))
@@ -76,6 +82,21 @@ public class TouchManager2D : MonoBehaviour
                 UpdateScoreUI();
 
                 Destroy(hitCollider.gameObject);
+            }
+            else if (hitCollider.CompareTag("Hoop"))
+            {
+                score += 1;
+                Debug.Log("ชู้ตลง! แต้มรวม: " + score);
+                UpdateScoreUI();
+
+                // ---> ส่วนที่ต้องแก้ไข <---
+                // ดึงสคริปต์ HoopController จากวัตถุที่เราแตะโดน
+                HoopController hoop = hitCollider.GetComponent<HoopController>();
+                if (hoop != null)
+                {
+                    // สั่งให้แป้นบาสย้ายตำแหน่งทันที (และมันจะรีเซ็ตเวลา 1 วิให้ด้วย)
+                    hoop.MoveToRandomPosition();
+                }
             }
             else
             {
