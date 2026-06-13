@@ -98,6 +98,13 @@ public class TouchManager2D : MonoBehaviour
                     hoop.MoveToRandomPosition();
                 }
             }
+            else if (hitCollider.CompareTag("Water"))
+            {
+                score += 1;
+                Debug.Log("ชู้ตลง! แต้มรวม: " + score);
+                UpdateScoreUI();
+
+            }
             else
             {
                 Debug.Log("แตะโดนวัตถุอื่นที่ไม่ได้แต้ม");
