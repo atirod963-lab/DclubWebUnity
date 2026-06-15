@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager Instance; // ทำเป็น Singleton เพื่อให้สคริปต์นับถอยหลังเรียกใช้ง่ายๆ
+    public static GameManager Instance;
 
     [Header("UI References")]
     public Slider energySlider;
@@ -17,12 +17,10 @@ public class GameManager : MonoBehaviour
 
     private int currentScore = 0;
 
-    // ❌ เปลี่ยนจาก true เป็น false เพื่อให้เริ่มซีนมา "ยังไม่เริ่มรับการคลิก"
     private bool isGameActive = false;
 
     void Awake()
     {
-        // สร้าง Instance ของตัวเองเพื่อให้สคริปต์อื่นเรียกใช้ได้
         Instance = this;
     }
 
@@ -38,7 +36,6 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        // ถ้า gameยังไม่เริ่ม (isGameActive == false) โค้ดจะหยุดตรงนี้ทันที จะคลิกยังไงก็ไม่มีอะไรเด้ง
         if (!isGameActive) return;
 
         if (Input.GetMouseButtonDown(0) || (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began))
@@ -46,10 +43,6 @@ public class GameManager : MonoBehaviour
             AddScore();
         }
     }
-
-    // ==========================================
-    // [ฟังก์ชันเพิ่มใหม่] สำหรับให้สคริปต์นับถอยหลังมาเรียกใช้เมื่อนับเสร็จ
-    // ==========================================
     public void StartMiniGame()
     {
         isGameActive = true;
@@ -57,25 +50,20 @@ public class GameManager : MonoBehaviour
 
     void AddScore()
     {
-        if (currentScore >= targetScore) return;
+
+        if (TouchManager2D.Instance != null)
+        {
+            TouchManager2D.Instance.score += 1;
+            TouchManager2D.Instance.UpdateScoreUI();
+        }
 
         currentScore++;
-
         if (energySlider != null)
         {
             energySlider.value = currentScore;
         }
 
         SpawnFloatingText();
-
-        if (TouchManager2D.Instance != null)
-        {
-            TouchManager2D.Instance.score += 1;
-            if (TouchManager2D.Instance.scoreText != null)
-            {
-                TouchManager2D.Instance.scoreText.text = "Score: " + TouchManager2D.Instance.score;
-            }
-        }
 
         if (currentScore >= targetScore)
         {
