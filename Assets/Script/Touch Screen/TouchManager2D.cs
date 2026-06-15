@@ -7,6 +7,9 @@ public class TouchManager2D : MonoBehaviour
     public int score = 0;
     public TextMeshProUGUI scoreText;
 
+    // [เพิ่มใหม่] สวิตช์เช็คว่าเกมเริ่มหรือยัง เพื่อบล็อกการคลิกก่อนเวลา
+    public bool isGameActive = false;
+
     void Awake()
     {
         // เช็คว่ามี TouchManager2D ตัวอื่นอยู่ในระบบหรือยัง
@@ -30,6 +33,9 @@ public class TouchManager2D : MonoBehaviour
 
     void Update()
     {
+        // [เพิ่มใหม่] ถ้าเกมยังไม่เริ่ม ให้เด้งออกจากฟังก์ชัน Update ทันที (บล็อกการคลิก)
+        if (!isGameActive) return;
+
         // 1. ตรวจสอบการสัมผัสบนมือถือ
         if (Input.touchCount > 0)
         {

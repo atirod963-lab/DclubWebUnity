@@ -7,12 +7,12 @@ public class GameTimerManager : MonoBehaviour
     public static GameTimerManager Instance;
 
     [Header("Timer Settings")]
-    [Tooltip("àÇÅÒ·Õè¨Ð¨Ñº (ÇÔ¹Ò·Õ)")]
-    public float startingTime = 60f; // à»ÅÕèÂ¹ª×èÍà»ç¹àÇÅÒµÑé§µé¹
+    [Tooltip("เวลาเริ่มต้นปกติสำหรับ Scene ทั่วไป (วินาที)")]
+    public float startingTime = 60f;
     private float timeRemaining;
 
     [Header("UI Settings")]
-    [Tooltip("¾ÔÁ¾ìª×èÍ¢Í§ GameObject Text àÇÅÒãËéµÃ§à»êÐæ")]
+    [Tooltip("พิมพ์ชื่อของ GameObject Text เวลาให้ตรงเป๊ะๆ")]
     public string timerTextName = "TimerText";
     private TextMeshProUGUI timerText;
 
@@ -41,25 +41,38 @@ public class GameTimerManager : MonoBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    // ·Ó§Ò¹·Ø¡¤ÃÑé§·ÕèâËÅ´ Scene ãËÁè
+    // ทำงานทุกครั้งที่โหลด Scene ใหม่
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // 1. ¤é¹ËÒ UI µÑÇàÅ¢ºÍ¡àÇÅÒã¹ Scene ãËÁè
+        // 1. ค้นหา UI ตัวเลขบอกเวลาใน Scene ใหม่
         GameObject uiObj = GameObject.Find(timerTextName);
         if (uiObj != null)
         {
             timerText = uiObj.GetComponent<TextMeshProUGUI>();
         }
 
-        // 2. ÃÕà«çµàÇÅÒ¡ÅÑºä»·Õè 60 ÇÔ áÅÐÊÑè§ãËé¾ÃéÍÁ·Ó§Ò¹
-        timeRemaining = startingTime;
+        // 2. เช็คชื่อ Scene เพื่อตั้งเวลาให้เหมาะสม
+        if (scene.name == "MInigame3")
+        {
+            // ถ้าเป็นหน้า Minigame3 ให้บังคับเวลาเป็น 20 วินาที
+            timeRemaining = 20f;
+            Debug.Log("เข้าสู่ Minigame3: ตั้งเวลาเป็น 20 วินาที");
+        }
+        else
+        {
+            // ถ้าเป็น Scene อื่นๆ ให้ใช้เวลาตามค่า startingTime ปกติ (60 วิ)
+            timeRemaining = startingTime;
+            Debug.Log("เข้าสู่ Scene ปกติ: ตั้งเวลาเป็น " + startingTime + " วินาที");
+        }
+
+        // 3. สั่งให้เวลาพร้อมทำงาน
         isTimerRunning = true;
         UpdateTimerUI();
     }
 
     void Update()
     {
-        // ¨ÐäÁèËÑ¡ÅºàÇÅÒµÃÒºã´·Õè Time.timeScale ÂÑ§à»ç¹ 0 (µÍ¹·Õè 3 2 1 ¡ÓÅÑ§·Ó§Ò¹)
+        // จะไม่หักลบเวลาตราบใดที่ Time.timeScale ยังเป็น 0 (ตอนที่ 3 2 1 กำลังทำงาน)
         if (isTimerRunning && timeRemaining > 0)
         {
             timeRemaining -= Time.deltaTime;
@@ -91,12 +104,12 @@ public class GameTimerManager : MonoBehaviour
 
         if (nextSceneIndex < totalScenes)
         {
-            Debug.Log("ËÁ´àÇÅÒ! ¡ÓÅÑ§à»ÅÕèÂ¹ä» Scene ·Õè: " + nextSceneIndex);
+            Debug.Log("หมดเวลา! กำลังเปลี่ยนไป Scene ที่: " + nextSceneIndex);
             SceneManager.LoadScene(nextSceneIndex);
         }
         else
         {
-            Debug.Log("ËÁ´àÇÅÒ! áÅÐäÁèÁÕ Scene ¶Ñ´ä»ãËéâËÅ´áÅéÇ");
+            Debug.Log("หมดเวลา! และไม่มี Scene ถัดไปให้โหลดแล้ว");
         }
     }
 }

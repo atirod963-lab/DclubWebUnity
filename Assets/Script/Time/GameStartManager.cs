@@ -8,9 +8,9 @@ public class GameStartManager : MonoBehaviour
     public static GameStartManager Instance;
 
     [Header("UI Settings")]
-    [Tooltip("¾ÔÁ¾ìª×èÍ¢Í§ GameObject Text ãËéµÃ§à»êÐæ à¾×èÍãËéÃÐºº¤é¹ËÒÍÑµâ¹ÁÑµÔ")]
+    [Tooltip("พิมพ์ชื่อของ GameObject Text ให้ตรงเป๊ะๆ เพื่อให้ระบบค้นหาอัตโนมัติ")]
     public string countdownTextName = "CountdownText";
-    private TextMeshProUGUI countdownText; // äÁèµéÍ§ÅÒ¡ãÊè Inspector áÅéÇ
+    private TextMeshProUGUI countdownText;
 
     void Awake()
     {
@@ -25,22 +25,18 @@ public class GameStartManager : MonoBehaviour
         }
     }
 
-    // àÁ×èÍÊ¤ÃÔ»µì¹Õé¶Ù¡à»Ô´ãªé§Ò¹ ãËéÃÍ¿Ñ§ÊÑ­­Ò³¡ÒÃà»ÅÕèÂ¹ Scene
     void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-    // àÁ×èÍ»Ô´Ê¤ÃÔ»µì ãËéàÅÔ¡ÃÍÃÑºÊÑ­­Ò³ (»éÍ§¡Ñ¹ Error Memory Leak)
     void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    // ¿Ñ§¡ìªÑ¹¹Õé¨Ð·Ó§Ò¹ÍÑµâ¹ÁÑµÔ "·Ø¡¤ÃÑé§" ·ÕèâËÅ´ Scene ãËÁèàÊÃç¨
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // 1. ¤é¹ËÒ UI Text µÑÇãËÁèã¹ Scene »Ñ¨¨ØºÑ¹
         GameObject uiObj = GameObject.Find(countdownTextName);
         if (uiObj != null)
         {
@@ -48,12 +44,17 @@ public class GameStartManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("ËÒ UI ¹ÑºàÇÅÒäÁèà¨Í! ÍÂèÒÅ×ÁµÑé§ª×èÍÇÑµ¶ØÇèÒ: " + countdownTextName);
+            Debug.LogWarning("หา UI นับเวลาไม่เจอ! อย่าลืมตั้งชื่อวัตถุว่า: " + countdownTextName);
         }
 
-        // 2. ËÂØ´àÇÅÒã¹à¡Á áÅÐàÃÔèÁ¹Ñº 3 2 1 ãËÁè
+        // สั่งปิดการแตะหน้าจอทันทีที่เข้า Scene ใหม่
+        if (TouchManager2D.Instance != null)
+        {
+            TouchManager2D.Instance.isGameActive = false;
+        }
+
         Time.timeScale = 0f;
-        StopAllCoroutines(); // ËÂØ´¡ÒÃ¹Ñº¶ÍÂËÅÑ§¢Í§à¡èÒ (¶éÒÁÕ¤éÒ§ÍÂÙè)
+        StopAllCoroutines();
         StartCoroutine(StartCountdownRoutine());
     }
 
@@ -75,15 +76,14 @@ public class GameStartManager : MonoBehaviour
         if (countdownText != null) countdownText.gameObject.SetActive(false);
 
         Time.timeScale = 1f;
-        
-        
-        
 
-        //กูเพิ่มโค้ดไปตรงนี้ดิดหน่อยนะเพื่อน
-        // ==========================================
-        // ---> เพิ่มโค้ด 4 บรรทัดนี้ต่อท้ายลงไป <---
+        // เมื่อนับถอยหลังเสร็จ สั่งเปิดให้ผู้เล่นแตะหน้าจอได้!
+        if (TouchManager2D.Instance != null)
+        {
+            TouchManager2D.Instance.isGameActive = true;
+        }
+
         // สั่งให้มินิเกมของเราเริ่มรับค่าการคลิกหน้าจอ
-        // ==========================================
         if (GameManager.Instance != null)
         {
             GameManager.Instance.StartMiniGame();
