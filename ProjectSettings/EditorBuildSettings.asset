@@ -17,6 +17,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Test Kong.unity
     guid: dd954813e22d9c540bf65004eb55158d
+  - enabled: 1
+    path: Assets/Scenes/Basketball Minigame.unity
+    guid: 48179c8c99b415741a20129bf635d7f1
+  - enabled: 1
+    path: Assets/Scenes/MInigame3.unity
+    guid: 97770e1ce58ef6140a21c9ca265cca00
+  - enabled: 0
+    path: Assets/Scenes/Test Change Scene.unity
+    guid: 6fa192e03c02f484495823b745335493
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
