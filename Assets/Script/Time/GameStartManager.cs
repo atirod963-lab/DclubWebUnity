@@ -75,8 +75,11 @@ public class GameStartManager : MonoBehaviour
         if (countdownText != null) countdownText.gameObject.SetActive(false);
 
         Time.timeScale = 1f;
+        
+        
+        
 
-
+        //กูเพิ่มโค้ดไปตรงนี้ดิดหน่อยนะเพื่อน
         // ==========================================
         // ---> เพิ่มโค้ด 4 บรรทัดนี้ต่อท้ายลงไป <---
         // สั่งให้มินิเกมของเราเริ่มรับค่าการคลิกหน้าจอ
