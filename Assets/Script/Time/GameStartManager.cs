@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
@@ -8,9 +8,9 @@ public class GameStartManager : MonoBehaviour
     public static GameStartManager Instance;
 
     [Header("UI Settings")]
-    [Tooltip("�������ͧ͢ GameObject Text ���ç���� ��������к������ѵ��ѵ�")]
+    [Tooltip("¾ÔÁ¾ìª×èÍ¢Í§ GameObject Text ãËéµÃ§à»êÐæ à¾×èÍãËéÃÐºº¤é¹ËÒÍÑµâ¹ÁÑµÔ")]
     public string countdownTextName = "CountdownText";
-    private TextMeshProUGUI countdownText; // ����ͧ�ҡ��� Inspector ����
+    private TextMeshProUGUI countdownText; // äÁèµéÍ§ÅÒ¡ãÊè Inspector áÅéÇ
 
     void Awake()
     {
@@ -25,22 +25,22 @@ public class GameStartManager : MonoBehaviour
         }
     }
 
-    // �����ʤ�Ի����١�Դ��ҹ ����Ϳѧ�ѭ�ҳ�������¹ Scene
+    // àÁ×èÍÊ¤ÃÔ»µì¹Õé¶Ù¡à»Ô´ãªé§Ò¹ ãËéÃÍ¿Ñ§ÊÑ­­Ò³¡ÒÃà»ÅÕèÂ¹ Scene
     void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-    // ����ͻԴʤ�Ի�� �����ԡ���Ѻ�ѭ�ҳ (��ͧ�ѹ Error Memory Leak)
+    // àÁ×èÍ»Ô´Ê¤ÃÔ»µì ãËéàÅÔ¡ÃÍÃÑºÊÑ­­Ò³ (»éÍ§¡Ñ¹ Error Memory Leak)
     void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    // �ѧ��ѹ���зӧҹ�ѵ��ѵ� "�ء����" �����Ŵ Scene ��������
+    // ¿Ñ§¡ìªÑ¹¹Õé¨Ð·Ó§Ò¹ÍÑµâ¹ÁÑµÔ "·Ø¡¤ÃÑé§" ·ÕèâËÅ´ Scene ãËÁèàÊÃç¨
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // 1. ���� UI Text �������� Scene �Ѩ�غѹ
+        // 1. ¤é¹ËÒ UI Text µÑÇãËÁèã¹ Scene »Ñ¨¨ØºÑ¹
         GameObject uiObj = GameObject.Find(countdownTextName);
         if (uiObj != null)
         {
@@ -48,12 +48,12 @@ public class GameStartManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("�� UI �Ѻ���������! ���������駪����ѵ�����: " + countdownTextName);
+            Debug.LogWarning("ËÒ UI ¹ÑºàÇÅÒäÁèà¨Í! ÍÂèÒÅ×ÁµÑé§ª×èÍÇÑµ¶ØÇèÒ: " + countdownTextName);
         }
 
-        // 2. ��ش������� ���������Ѻ 3 2 1 ����
+        // 2. ËÂØ´àÇÅÒã¹à¡Á áÅÐàÃÔèÁ¹Ñº 3 2 1 ãËÁè
         Time.timeScale = 0f;
-        StopAllCoroutines(); // ��ش��ùѺ�����ѧ�ͧ��� (����դ�ҧ����)
+        StopAllCoroutines(); // ËÂØ´¡ÒÃ¹Ñº¶ÍÂËÅÑ§¢Í§à¡èÒ (¶éÒÁÕ¤éÒ§ÍÂÙè)
         StartCoroutine(StartCountdownRoutine());
     }
 
@@ -75,5 +75,15 @@ public class GameStartManager : MonoBehaviour
         if (countdownText != null) countdownText.gameObject.SetActive(false);
 
         Time.timeScale = 1f;
+
+
+        // ==========================================
+        // ---> เพิ่มโค้ด 4 บรรทัดนี้ต่อท้ายลงไป <---
+        // สั่งให้มินิเกมของเราเริ่มรับค่าการคลิกหน้าจอ
+        // ==========================================
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.StartMiniGame();
+        }
     }
 }

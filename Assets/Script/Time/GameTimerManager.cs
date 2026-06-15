@@ -1,4 +1,4 @@
-using UnityEngine;
+๏ปฟusing UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
 
@@ -7,12 +7,12 @@ public class GameTimerManager : MonoBehaviour
     public static GameTimerManager Instance;
 
     [Header("Timer Settings")]
-    [Tooltip("เวลาที่จะจับ (วินาที)")]
-    public float startingTime = 60f; // เปลี่ยนชื่อเป็นเวลาตั้งต้น
+    [Tooltip("ร รร…ร’ยทร•รจยจรยจร‘ยบ (รร”ยนร’ยทร•)")]
+    public float startingTime = 60f; // ร ยปร…ร•รจรยนยชร—รจรร ยปรงยนร รร…ร’ยตร‘รฉยงยตรฉยน
     private float timeRemaining;
 
     [Header("UI Settings")]
-    [Tooltip("พิมพ์ชื่อของ GameObject Text เวลาให้ตรงเป๊ะๆ")]
+    [Tooltip("ยพร”รยพรฌยชร—รจรยขรยง GameObject Text ร รร…ร’รฃรรฉยตรยงร ยปรชรรฆ")]
     public string timerTextName = "TimerText";
     private TextMeshProUGUI timerText;
 
@@ -41,17 +41,17 @@ public class GameTimerManager : MonoBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    // ทำงานทุกครั้งที่โหลด Scene ใหม่
+    // ยทร“ยงร’ยนยทรยกยครร‘รฉยงยทร•รจรขรร…ยด Scene รฃรรรจ
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // 1. ค้นหา UI ตัวเลขบอกเวลาใน Scene ใหม่
+        // 1. ยครฉยนรร’ UI ยตร‘รร ร…ยขยบรยกร รร…ร’รฃยน Scene รฃรรรจ
         GameObject uiObj = GameObject.Find(timerTextName);
         if (uiObj != null)
         {
             timerText = uiObj.GetComponent<TextMeshProUGUI>();
         }
 
-        // 2. รีเซ็ตเวลากลับไปที่ 60 วิ และสั่งให้พร้อมทำงาน
+        // 2. รร•ร ยซรงยตร รร…ร’ยกร…ร‘ยบรคยปยทร•รจ 60 รร” รกร…รรร‘รจยงรฃรรฉยพรรฉรรยทร“ยงร’ยน
         timeRemaining = startingTime;
         isTimerRunning = true;
         UpdateTimerUI();
@@ -59,7 +59,7 @@ public class GameTimerManager : MonoBehaviour
 
     void Update()
     {
-        // จะไม่หักลบเวลาตราบใดที่ Time.timeScale ยังเป็น 0 (ตอนที่ 3 2 1 กำลังทำงาน)
+        // ยจรรครรจรร‘ยกร…ยบร รร…ร’ยตรร’ยบรฃยดยทร•รจ Time.timeScale รร‘ยงร ยปรงยน 0 (ยตรยนยทร•รจ 3 2 1 ยกร“ร…ร‘ยงยทร“ยงร’ยน)
         if (isTimerRunning && timeRemaining > 0)
         {
             timeRemaining -= Time.deltaTime;
@@ -91,12 +91,12 @@ public class GameTimerManager : MonoBehaviour
 
         if (nextSceneIndex < totalScenes)
         {
-            Debug.Log("หมดเวลา! กำลังเปลี่ยนไป Scene ที่: " + nextSceneIndex);
+            Debug.Log("รรยดร รร…ร’! ยกร“ร…ร‘ยงร ยปร…ร•รจรยนรคยป Scene ยทร•รจ: " + nextSceneIndex);
             SceneManager.LoadScene(nextSceneIndex);
         }
         else
         {
-            Debug.Log("หมดเวลา! และไม่มี Scene ถัดไปให้โหลดแล้ว");
+            Debug.Log("รรยดร รร…ร’! รกร…รรครรจรร• Scene ยถร‘ยดรคยปรฃรรฉรขรร…ยดรกร…รฉร");
         }
     }
 }

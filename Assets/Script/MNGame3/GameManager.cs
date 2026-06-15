@@ -1,123 +1,101 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class GameManager : MonoBehaviour
 {
+    public static GameManager Instance; // ทำเป็น Singleton เพื่อให้สคริปต์นับถอยหลังเรียกใช้ง่ายๆ
+
     [Header("UI References")]
     public Slider energySlider;
-    public TextMeshProUGUI timeText;
-    public TextMeshProUGUI scoreText;
-    public GameObject summaryPanel;
-    public TextMeshProUGUI finalScoreText;
 
     [Header("Game Settings")]
-    public float timeLimit = 60f;
-    public int targetScore = 100; // แต้มที่ต้องการเพื่อเติมหลอดให้เต็ม
+    public int targetScore = 100;
 
     [Header("Effect Prefab")]
     public GameObject floatingTextPrefab;
-    public Canvas canvas; // ต้องใส่ Canvas เพื่อให้ตัวเลขลอยขึ้นมาใน UI Space
+    public Canvas canvas;
 
     private int currentScore = 0;
-    private float timeRemaining;
+
+    // ❌ เปลี่ยนจาก true เป็น false เพื่อให้เริ่มซีนมา "ยังไม่เริ่มรับการคลิก"
     private bool isGameActive = false;
+
+    void Awake()
+    {
+        // สร้าง Instance ของตัวเองเพื่อให้สคริปต์อื่นเรียกใช้ได้
+        Instance = this;
+    }
 
     void Start()
     {
-        StartGame();
+        if (energySlider != null)
+        {
+            energySlider.maxValue = targetScore;
+            energySlider.value = 0;
+        }
+        currentScore = 0;
     }
 
     void Update()
     {
+        // ถ้า gameยังไม่เริ่ม (isGameActive == false) โค้ดจะหยุดตรงนี้ทันที จะคลิกยังไงก็ไม่มีอะไรเด้ง
         if (!isGameActive) return;
 
-        // ระบบนับถอยหลัง
-        if (timeRemaining > 0)
+        if (Input.GetMouseButtonDown(0) || (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began))
         {
-            timeRemaining -= Time.deltaTime;
-            DisplayTime(timeRemaining);
-
-            // ตรวจสอบการคลิกเมาส์ซ้าย
-            if (Input.GetMouseButtonDown(0))
-            {
-                AddScore();
-            }
-        }
-        else
-        {
-            EndGame();
+            AddScore();
         }
     }
 
-    void StartGame()
+    // ==========================================
+    // [ฟังก์ชันเพิ่มใหม่] สำหรับให้สคริปต์นับถอยหลังมาเรียกใช้เมื่อนับเสร็จ
+    // ==========================================
+    public void StartMiniGame()
     {
-        currentScore = 0;
-        timeRemaining = timeLimit;
         isGameActive = true;
-
-        energySlider.maxValue = targetScore;
-        energySlider.value = 0;
-        summaryPanel.SetActive(false);
-        UpdateScoreUI();
     }
 
     void AddScore()
     {
-        currentScore++;
-        UpdateScoreUI();
+        if (currentScore >= targetScore) return;
 
-        // สร้าง Effect +1 ตรงตำแหน่งที่คลิกเมาส์
+        currentScore++;
+
+        if (energySlider != null)
+        {
+            energySlider.value = currentScore;
+        }
+
         SpawnFloatingText();
 
-        // ถ้าหลอดพลังงานเต็มแล้ว (จะเลือกให้จบเกมทันที หรือให้กดต่อจนหมดเวลาก็ได้)
+        if (TouchManager2D.Instance != null)
+        {
+            TouchManager2D.Instance.score += 1;
+            if (TouchManager2D.Instance.scoreText != null)
+            {
+                TouchManager2D.Instance.scoreText.text = "Score: " + TouchManager2D.Instance.score;
+            }
+        }
+
         if (currentScore >= targetScore)
         {
-            currentScore = targetScore; // ล็อคไม่ให้เกินหลอด
-            // EndGame(); // เปิดคอมเมนต์นี้ถ้าอยากให้หลอดเต็มแล้วจบเกมเลย
+            currentScore = targetScore;
+            isGameActive = false;
         }
-    }
-
-    void UpdateScoreUI()
-    {
-        scoreText.text = "Score: " + currentScore;
-        energySlider.value = currentScore;
-    }
-
-    void DisplayTime(float timeToDisplay)
-    {
-        if (timeToDisplay < 0) timeToDisplay = 0;
-        float seconds = Mathf.FloorToInt(timeToDisplay % 60);
-        float fraction = Mathf.FloorToInt((timeToDisplay * 100) % 100);
-
-        // แสดงผลแบบ วินาที : เสี้ยววินาที (เช่น 59:99) เพื่อความตื่นเต้น
-        timeText.text = string.Format("{0:00}:{1:00}", seconds, fraction);
     }
 
     void SpawnFloatingText()
     {
         if (floatingTextPrefab != null && canvas != null)
         {
-            // สร้างตำแหน่งบน Canvas ตามพิกัดของเมาส์
+            Vector3 inputPosition = Input.mousePosition;
+            if (Input.touchCount > 0)
+            {
+                inputPosition = Input.GetTouch(0).position;
+            }
+
             GameObject textObj = Instantiate(floatingTextPrefab, canvas.transform);
-            textObj.transform.position = Input.mousePosition;
+            textObj.transform.position = inputPosition;
         }
-    }
-
-    void EndGame()
-    {
-        isGameActive = false;
-        timeRemaining = 0;
-        DisplayTime(0);
-
-        // เปิดหน้าต่างสรุปผล
-        summaryPanel.SetActive(true);
-        finalScoreText.text = "คุณทำได้ทั้งหมด\n" + currentScore + " คะแนน!";
-    }
-
-    // ฟังก์ชันสำหรับผูกกับปุ่ม Replay ในหน้าต่างสรุปผล
-    public void RestartGame()
-    {
-        StartGame();
     }
 }
