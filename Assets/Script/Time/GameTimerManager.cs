@@ -8,7 +8,7 @@ public class GameTimerManager : MonoBehaviour
 
     [Header("Timer Settings")]
     [Tooltip("เวลาเริ่มต้นปกติสำหรับ Scene ทั่วไป (วินาที)")]
-    public float startingTime = 60f;
+    public float startingTime = 45f;
     private float timeRemaining;
 
     [Header("UI Settings")]
@@ -55,7 +55,7 @@ public class GameTimerManager : MonoBehaviour
         if (scene.name == "MInigame3")
         {
             // ถ้าเป็นหน้า Minigame3 ให้บังคับเวลาเป็น 20 วินาที
-            timeRemaining = 20f;
+            timeRemaining = 15f;
             Debug.Log("เข้าสู่ Minigame3: ตั้งเวลาเป็น 20 วินาที");
         }
         else
