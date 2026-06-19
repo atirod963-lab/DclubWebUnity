@@ -9,6 +9,10 @@ public class GameStartManager : MonoBehaviour
     [Header("UI Settings")]
     public TextMeshProUGUI countdownText;
 
+    [Header("Tutorial Settings (หน้าสอนเล่น)")]
+    public GameObject tutorialPanel;
+    public float tutorialDisplayTime = 5f;
+
     void Awake()
     {
         Instance = this;
@@ -24,6 +28,32 @@ public class GameStartManager : MonoBehaviour
 
         Time.timeScale = 0f;
         StopAllCoroutines();
+
+
+        if (tutorialPanel != null)
+        {
+
+            if (countdownText != null) countdownText.gameObject.SetActive(false);
+
+            tutorialPanel.SetActive(true);
+
+            StartCoroutine(WaitAndHideTutorial());
+        }
+        else
+        {
+
+            StartCoroutine(StartCountdownRoutine());
+        }
+    }
+
+
+    IEnumerator WaitAndHideTutorial()
+    {
+        yield return new WaitForSecondsRealtime(tutorialDisplayTime);
+
+        if (tutorialPanel != null) tutorialPanel.SetActive(false);
+
+
         StartCoroutine(StartCountdownRoutine());
     }
 
