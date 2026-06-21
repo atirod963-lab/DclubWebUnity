@@ -42,8 +42,21 @@ public class JigsawPiece : MonoBehaviourPun, IPunOwnershipCallbacks
         mainCam = Camera.main;
         gameManager = FindObjectOfType<JigsawGameManager>();
 
-
         PhotonNetwork.AddCallbackTarget(this);
+    }
+
+    // =====================================================
+    // [เพิ่มฟังก์ชันนี้ลงไป!] สั่งให้มันโหลดรูปตัวเองตามเลขประจำตัว
+    // =====================================================
+    void Start()
+    {
+        // ไปควานหาภาพย่อยทั้งหมดที่อยู่ในไฟล์ชื่อ "Galactic green Multi" จากโฟลเดอร์ Resources
+        Sprite[] allSlices = Resources.LoadAll<Sprite>("Galactic green Multi");
+
+        if (allSlices != null && pieceIndex < allSlices.Length)
+        {
+            sr.sprite = allSlices[pieceIndex]; // แปะหน้ารูปใหม่ทับหน้าเดิม!
+        }
     }
 
     void OnDestroy()
