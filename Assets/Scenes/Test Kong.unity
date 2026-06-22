@@ -1211,7 +1211,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ab73715eefc9c7749bbbfe9e75293bb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeRemaining: 10
+  timeRemaining: 45
   timerText: {fileID: 1102183277}
   nextSceneName: Basketball Minigame
 --- !u!1 &1664445271
@@ -1431,7 +1431,7 @@ Transform:
   m_GameObject: {fileID: 1722796988}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 161, y: 214, z: 0}
+  m_LocalPosition: {x: 161, y: 214, z: 58}
   m_LocalScale: {x: 500, y: 1000, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
