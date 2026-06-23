@@ -3,13 +3,15 @@ using Photon.Pun;
 using Photon.Realtime;
 using System.Collections;
 
-
 [RequireComponent(typeof(PhotonView))]
 [RequireComponent(typeof(PhotonTransformView))]
 [RequireComponent(typeof(Collider2D))]
 [RequireComponent(typeof(SpriteRenderer))]
 public class JigsawPiece : MonoBehaviourPun, IPunOwnershipCallbacks
 {
+    [Header("ตั้งค่าไฟล์รูปประจำตัว")]
+    public string spriteSheetName = "Galactic pink Multi";
+
     [Header("ข้อมูลชิ้นส่วน")]
     public int pieceIndex;
     public Vector2 originalPosition;
@@ -18,7 +20,6 @@ public class JigsawPiece : MonoBehaviourPun, IPunOwnershipCallbacks
 
     [Header("สีทีม")]
     public Color teamRedColor = Color.red;
-    public Color teamBlueColor = new Color(0.2f, 0.4f, 1f);
     public Color defaultColor = Color.white;
 
     [Header("สถานะ")]
@@ -29,247 +30,133 @@ public class JigsawPiece : MonoBehaviourPun, IPunOwnershipCallbacks
     private Camera mainCam;
     private Vector2 grabOffset;
     private bool isDragging = false;
-    private int grabberActorNumber = -1;
-
-    private int activeFingerId = -1;
-
     private JigsawGameManager gameManager;
+    private int originalSortingOrder;
 
-    // =====================================================
     void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
         mainCam = Camera.main;
         gameManager = FindObjectOfType<JigsawGameManager>();
-
         PhotonNetwork.AddCallbackTarget(this);
     }
 
-    // =====================================================
-    // [เพิ่มฟังก์ชันนี้ลงไป!] สั่งให้มันโหลดรูปตัวเองตามเลขประจำตัว
-    // =====================================================
     void Start()
     {
-        // ไปควานหาภาพย่อยทั้งหมดที่อยู่ในไฟล์ชื่อ "Galactic green Multi" จากโฟลเดอร์ Resources
-        Sprite[] allSlices = Resources.LoadAll<Sprite>("Galactic green Multi");
+        if (sr == null) sr = GetComponent<SpriteRenderer>();
+        originalSortingOrder = sr.sortingOrder;
 
+        Sprite[] allSlices = Resources.LoadAll<Sprite>(spriteSheetName);
         if (allSlices != null && pieceIndex < allSlices.Length)
         {
-            sr.sprite = allSlices[pieceIndex]; // แปะหน้ารูปใหม่ทับหน้าเดิม!
+            sr.sprite = allSlices[pieceIndex];
+
+            if (GetComponent<BoxCollider2D>() is BoxCollider2D col)
+            {
+                col.size = sr.sprite.bounds.size;
+                col.offset = Vector2.zero;
+            }
         }
     }
 
-    void OnDestroy()
-    {
-        PhotonNetwork.RemoveCallbackTarget(this);
-    }
+    void OnDestroy() => PhotonNetwork.RemoveCallbackTarget(this);
 
-    // =====================================================
-    //  UPDATE — จัดการ Touch & Mouse Input
-    // =====================================================
     void Update()
     {
-        if (isPlaced) return;
-
-        if (Input.touchCount > 0)
+        // =================================================================
+        // 🔥 [เซรุ่มสารภาพความจริง] วางไว้บรรทัดแรกสุดของ Update! ห้ามมี return ขวางหน้า
+        // =================================================================
+        if (Input.GetMouseButtonDown(0))
         {
-            for (int i = 0; i < Input.touchCount; i++)
-            {
-                Touch t = Input.GetTouch(i);
-                Vector2 worldPos = mainCam.ScreenToWorldPoint(t.position);
+            if (mainCam == null) mainCam = Camera.main;
+            Vector2 mouseWorld = mainCam.ScreenToWorldPoint(Input.mousePosition);
+            BoxCollider2D col = GetComponent<BoxCollider2D>();
+            bool isHit = col != null && col.OverlapPoint(mouseWorld);
 
-                switch (t.phase)
-                {
-                    case TouchPhase.Began:
-                        if (activeFingerId == -1 && HitTest(t.position))
-                        {
-                            activeFingerId = t.fingerId;
-                            TryGrab(worldPos);
-                        }
-                        break;
-
-                    case TouchPhase.Moved:
-                    case TouchPhase.Stationary:
-                        if (t.fingerId == activeFingerId && isDragging && photonView.IsMine)
-                        {
-                            transform.position = worldPos + grabOffset;
-                        }
-                        break;
-
-                    case TouchPhase.Ended:
-                    case TouchPhase.Canceled:
-                        if (t.fingerId == activeFingerId)
-                        {
-                            activeFingerId = -1;
-                            if (isDragging && photonView.IsMine)
-                            {
-                                TrySnap();
-                            }
-                        }
-                        break;
-                }
-            }
+            // สั่งจิ๊กซอว์ทุกชิ้นแหกปากรายงานตัวออกมาพร้อมกัน!
+            Debug.Log($"<color=cyan>🔍 [REPORT ชิ้น {pieceIndex}]</color> " +
+                      $"isPlaced=<b>{isPlaced}</b> | " +
+                      $"พิกัดเมาส์={mouseWorld.x:F1}, {mouseWorld.y:F1} | " +
+                      $"ผล HitTest: <b>{(isHit ? "<color=green>โดน!</color>" : "<color=red>วืด!</color>")}</b>");
         }
-        else
+
+        // -----------------------------------------------------------------
+        // ชุดคำสั่ง Drag & Drop ดั้งเดิม (ย้ายมาหลบอยู่ใต้เซรุ่มข้างบน)
+        if (isPlaced) return;
+        if (mainCam == null) return;
+
+        Vector2 currentMouse = mainCam.ScreenToWorldPoint(Input.mousePosition);
+
+        if (Input.GetMouseButtonDown(0))
         {
-            if (Input.GetMouseButtonDown(0))
-            {
-                if (HitTest(Input.mousePosition))
-                {
-                    TryGrab(mainCam.ScreenToWorldPoint(Input.mousePosition));
-                }
-            }
-            else if (Input.GetMouseButton(0))
-            {
-                if (isDragging && photonView.IsMine)
-                {
-                    Vector2 mouseWorld = mainCam.ScreenToWorldPoint(Input.mousePosition);
-                    transform.position = mouseWorld + grabOffset;
-                }
-            }
-            else if (Input.GetMouseButtonUp(0))
-            {
-                if (isDragging && photonView.IsMine)
-                {
-                    TrySnap();
-                }
-            }
+            if (HitTest(Input.mousePosition)) TryGrab(currentMouse);
+        }
+        else if (Input.GetMouseButton(0))
+        {
+            if (isDragging && photonView.IsMine) transform.position = currentMouse + grabOffset;
+        }
+        else if (Input.GetMouseButtonUp(0))
+        {
+            if (isDragging && photonView.IsMine) TrySnap();
         }
     }
 
-    // =====================================================
-    //  HIT TEST
-    // =====================================================
     bool HitTest(Vector2 screenPos)
     {
         Vector2 world = mainCam.ScreenToWorldPoint(screenPos);
         return GetComponent<Collider2D>().OverlapPoint(world);
     }
 
-    // =====================================================
-    //  TRY GRAB
-    // =====================================================
     void TryGrab(Vector2 inputWorldPos)
     {
-        if (isGrabbed)
-        {
-            photonView.RPC("RPC_ForceResetPiece", RpcTarget.All);
-            return;
-        }
+        if (isGrabbed) return;
 
         grabOffset = (Vector2)transform.position - inputWorldPos;
-        photonView.RequestOwnership();
+
+        if (photonView.IsMine) StartDragging();
+        else photonView.RequestOwnership();
     }
 
-    // =====================================================
-    //  OWNERSHIP CALLBACKS
-    // =====================================================
+    void StartDragging()
+    {
+        isDragging = true;
+        sr.sortingOrder = 999;
+        photonView.RPC("RPC_GrabPiece", RpcTarget.All, PhotonNetwork.LocalPlayer.ActorNumber);
+    }
+
     public void OnOwnershipRequest(PhotonView targetView, Player requestingPlayer)
     {
-        if (targetView == photonView)
-            targetView.TransferOwnership(requestingPlayer);
+        if (targetView == photonView) targetView.TransferOwnership(requestingPlayer);
     }
 
     public void OnOwnershipTransfered(PhotonView targetView, Player previousOwner)
     {
-        if (targetView != photonView) return;
-        if (!photonView.IsMine) return;
-
-        isDragging = true;
-        photonView.RPC("RPC_GrabPiece", RpcTarget.All, PhotonNetwork.LocalPlayer.ActorNumber);
+        if (targetView != photonView || !photonView.IsMine) return;
+        StartDragging();
     }
 
     public void OnOwnershipTransferFailed(PhotonView targetView, Player senderOfFailedRequest) { }
 
-    // =====================================================
-    //  TRY SNAP
-    // =====================================================
     void TrySnap()
     {
         isDragging = false;
+        sr.sortingOrder = originalSortingOrder;
+
         float dist = Vector2.Distance(transform.position, targetPosition);
-
-        if (dist <= snapDistance)
-            photonView.RPC("RPC_PlacePiece", RpcTarget.All);
-        else
-            photonView.RPC("RPC_ReleasePiece", RpcTarget.All);
+        if (dist <= snapDistance) photonView.RPC("RPC_PlacePiece", RpcTarget.All);
+        else photonView.RPC("RPC_ReleasePiece", RpcTarget.All);
     }
 
-    // =====================================================
-    //  RPCs
-    // =====================================================
-    [PunRPC]
-    void RPC_GrabPiece(int actorNumber)
-    {
-        isGrabbed = true;
-        grabberActorNumber = actorNumber;
-
-        bool isMine = actorNumber == PhotonNetwork.LocalPlayer.ActorNumber;
-        sr.color = isMine ? defaultColor : teamRedColor;
-    }
-
-    [PunRPC]
-    void RPC_ReleasePiece()
-    {
-        ResetGrabState();
-        StartCoroutine(MoveToOrigin(originalPosition));
-    }
-
-    [PunRPC]
-    void RPC_ForceResetPiece()
-    {
-        ResetGrabState();
-
-        if (gameManager != null)
-        {
-            gameManager.ShowConflictEffect(transform.position);
-        }
-
-        StartCoroutine(MoveToOrigin(originalPosition));
-    }
-
-    [PunRPC]
-    void RPC_PlacePiece()
-    {
-        isPlaced = true;
-        ResetGrabState();
-
-        transform.position = targetPosition;
-        GetComponent<Collider2D>().enabled = false;
-
-        if (photonView.IsMine)
-        {
-            if (gameManager != null)
-            {
-                gameManager.OnPiecePlaced();
-            }
-        }
-    }
-
-    // =====================================================
-    //  HELPERS
-    // =====================================================
-    void ResetGrabState()
-    {
-        isGrabbed = false;
-        grabberActorNumber = -1;
-        isDragging = false;
-        activeFingerId = -1;
-        sr.color = defaultColor;
-    }
+    [PunRPC] void RPC_GrabPiece(int actorNumber) { isGrabbed = true; sr.color = (actorNumber == PhotonNetwork.LocalPlayer.ActorNumber) ? defaultColor : teamRedColor; }
+    [PunRPC] void RPC_ReleasePiece() { isGrabbed = false; StartCoroutine(MoveToOrigin(originalPosition)); }
+    [PunRPC] void RPC_ForceResetPiece() { isGrabbed = false; StartCoroutine(MoveToOrigin(originalPosition)); }
+    [PunRPC] void RPC_PlacePiece() { isPlaced = true; isGrabbed = false; transform.position = targetPosition; if (GetComponent<Collider2D>() != null) GetComponent<Collider2D>().enabled = false; sr.color = defaultColor; if (photonView.IsMine && gameManager != null) gameManager.OnPiecePlaced(); }
 
     IEnumerator MoveToOrigin(Vector2 target)
     {
         float elapsed = 0f;
-        float duration = 0.3f;
         Vector2 start = transform.position;
-
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            transform.position = Vector2.Lerp(start, target, elapsed / duration);
-            yield return null;
-        }
+        while (elapsed < 0.2f) { elapsed += Time.deltaTime; transform.position = Vector2.Lerp(start, target, elapsed / 0.2f); yield return null; }
         transform.position = target;
     }
 }

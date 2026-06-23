@@ -273,12 +273,15 @@ MonoBehaviour:
   devFastTrackMode: 1
   devTestSolo: 1
   soloSceneName: GameplaySolo
+  playerNameInput: {fileID: 0}
   roomNameInput: {fileID: 0}
   createButton: {fileID: 0}
   joinButton: {fileID: 0}
   startButton: {fileID: 0}
   statusText: {fileID: 0}
   playersText: {fileID: 0}
+  avatarDisplay: {fileID: 0}
+  avatarSprites: []
   team1SceneName: GameplayTeam1
   team2SceneName: GameplayTeam2
 --- !u!4 &1494470080
