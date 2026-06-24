@@ -2262,6 +2262,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bottleFullImage: {fileID: 1926072159}
+  bottleRect: {fileID: 1949240532}
   targetScore: 999
   floatingTextPrefab: {fileID: 2052336076057765544, guid: e41cee63dbeb25140bdd5f628089d106, type: 3}
   canvas: {fileID: 732172350}
