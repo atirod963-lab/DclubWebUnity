@@ -302,6 +302,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   jigsawPiecePrefab: {fileID: 5645424372977451899, guid: 2421ed3c58cbfa04a8d3960d19de52ee, type: 3}
   myTeam: 1
+  pieceSpacing: 1.2
+  guideAlpha: 0.25
+  guideScale: 0.55
   timerText: {fileID: 2024685738}
   roundText: {fileID: 1876660853}
   countdownText: {fileID: 1346470834}
@@ -563,7 +566,7 @@ Transform:
   m_GameObject: {fileID: 1559038582}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 2, z: 0}
+  m_LocalPosition: {x: 0, y: 0.09, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
