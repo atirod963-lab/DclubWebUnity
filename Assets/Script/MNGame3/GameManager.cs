@@ -6,7 +6,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     [Header("UI References")]
-    public Slider energySlider;
+    public Image bottleFullImage; // ลาก BottleFull Image เข้ามา
 
     [Header("Game Settings")]
     public int targetScore = 100;
@@ -16,7 +16,6 @@ public class GameManager : MonoBehaviour
     public Canvas canvas;
 
     private int currentScore = 0;
-
     private bool isGameActive = false;
 
     void Awake()
@@ -26,12 +25,8 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        if (energySlider != null)
-        {
-            energySlider.maxValue = targetScore;
-            energySlider.value = 0;
-        }
         currentScore = 0;
+        UpdateBottleFill(); // เซ็ตขวดให้เต็มตอนเริ่ม
     }
 
     void Update()
@@ -43,6 +38,7 @@ public class GameManager : MonoBehaviour
             AddScore();
         }
     }
+
     public void StartMiniGame()
     {
         isGameActive = true;
@@ -50,7 +46,6 @@ public class GameManager : MonoBehaviour
 
     void AddScore()
     {
-
         if (TouchManager2D.Instance != null)
         {
             TouchManager2D.Instance.score += 1;
@@ -58,10 +53,8 @@ public class GameManager : MonoBehaviour
         }
 
         currentScore++;
-        if (energySlider != null)
-        {
-            energySlider.value = currentScore;
-        }
+
+        UpdateBottleFill(); // อัปเดตขวดทุกครั้งที่กด
 
         SpawnFloatingText();
 
@@ -69,6 +62,15 @@ public class GameManager : MonoBehaviour
         {
             currentScore = targetScore;
             isGameActive = false;
+        }
+    }
+
+    void UpdateBottleFill()
+    {
+        if (bottleFullImage != null)
+        {
+            // 1.0 = เต็ม, 0.0 = หมด
+            bottleFullImage.fillAmount = 1f - ((float)currentScore / (float)targetScore);
         }
     }
 
