@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: e19625c55f32a0f4aa3a1c6278190833
+guid: 5926300d2bc96dc4ab17c506b3fe7ff3
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -110,89 +110,111 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Basket ball_0
+      name: Basket ball 1_0
       rect:
         serializedVersion: 2
-        x: 42
-        y: 507
-        width: 297
-        height: 252
+        x: 139
+        y: 1689
+        width: 992
+        height: 842
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7ea48d47140c9214fb53aadcd9624d65
-      internalID: 950856756
+      spriteID: 890d4b69ee7891c429d0e96a6d607263
+      internalID: 1958866570
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Basket ball_1
+      name: Basket ball 1_1
       rect:
         serializedVersion: 2
-        x: 423
-        y: 507
-        width: 297
-        height: 246
+        x: 1409
+        y: 1689
+        width: 992
+        height: 822
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f4c1ec1b6856bda4a9328aa32f8a562f
-      internalID: -494919955
+      spriteID: 4891a6d9b30a6df4bbc41f42aee36fe5
+      internalID: -1366726926
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Basket ball_2
+      name: Basket ball 1_2
       rect:
         serializedVersion: 2
-        x: 36
-        y: 219
-        width: 297
-        height: 246
+        x: 119
+        y: 729
+        width: 992
+        height: 822
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 779f0775fce670f44a0ecfc3669d479f
-      internalID: 573537270
+      spriteID: 33fe2793a34d9a345af166b03c34b553
+      internalID: -734158657
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Basket ball_3
+      name: Basket ball 1_3
       rect:
         serializedVersion: 2
-        x: 417
-        y: 114
-        width: 297
-        height: 351
+        x: 1389
+        y: 529
+        width: 992
+        height: 1022
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f61ff8d9e71158146b66b20615727950
-      internalID: 450786450
+      spriteID: 54cacb9c3056e3b4b9397bc72bdfee58
+      internalID: 1551025087
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Basket ball 1_4
+      rect:
+        serializedVersion: 2
+        x: 419
+        y: 29
+        width: 292
+        height: 272
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4c3d49cfdf4e7c04087288ca50a652c0
+      internalID: -1947050124
       vertices: []
       indices: 
       edges: []
@@ -201,7 +223,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: c83067267380b474e9eeaebeebc19c70
+    spriteID: 9d9065cca9ff13c42963e37041943774
     internalID: 0
     vertices: []
     indices: 
@@ -211,13 +233,11 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Basket ball_0: 950856756
-      Basket ball_1: -494919955
-      Basket ball_2: 573537270
-      Basket ball_3: 450786450
-      Basket ball_4: -271339799
-      Basket ball_5: -1584012401
-      Basket ball_6: -1573359391
+      Basket ball 1_0: 1958866570
+      Basket ball 1_1: -1366726926
+      Basket ball 1_2: -734158657
+      Basket ball 1_3: 1551025087
+      Basket ball 1_4: -1947050124
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
