@@ -20,7 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SummaryScene.unity
     guid: 4ac40f12175e52141b9500d0bb1220fe
-  - enabled: 1
+  - enabled: 0
     path: Assets/Script/Jigsaw/Scenes/GameplaySolo.unity
     guid: 2745641fb29a23b47977e2d64f901185
   m_configObjects:

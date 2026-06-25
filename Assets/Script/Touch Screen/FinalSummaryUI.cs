@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using UnityEngine.UI; // ต้องมีบรรทัดนี้เพื่อใช้ Button และ Image
+using UnityEngine.UI;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
@@ -12,9 +12,10 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
     public TextMeshProUGUI p1ScoreText;
     public TextMeshProUGUI p2ScoreText;
 
-    [Header("Social & Profile (เพิ่มใหม่)")]
-    public Image winnerAvatarDisplay; // ลากช่องโชว์รูปคนชนะมาใส่
-    public Sprite[] avatarSprites;    // ลากรูปเซ็ตเดิม เรียงให้ตรงกับหน้า Lobby
+    [Header("Social & Profile")]
+    public Image winnerAvatarDisplay;
+    public Image loserAvatarDisplay;
+    public Sprite[] avatarSprites;
     public Button facebookShareButton;
     public string gameURL = "https://pongsatornthn-art.github.io/DClub-Multiplayer-Web01/";
 
@@ -24,6 +25,8 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
     void Start()
     {
         if (winnerAvatarDisplay != null) winnerAvatarDisplay.gameObject.SetActive(false);
+        if (loserAvatarDisplay != null) loserAvatarDisplay.gameObject.SetActive(false);
+
         if (facebookShareButton != null) facebookShareButton.onClick.AddListener(ShareToFacebook);
 
         ShowFinalResults();
@@ -50,15 +53,29 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
             winnerNameText.text = $"🏆 {players[0].NickName} WIN! 🏆";
             topWinnerName = players[0].NickName;
             topScore = GetScore(players[0]);
-
-            // ดึง ID รูปโปรไฟล์มาแสดงผล
-            if (players[0].CustomProperties.ContainsKey("AvatarID") && winnerAvatarDisplay != null)
+        }
+        if (players.Count > 0 && winnerAvatarDisplay != null)
+        {
+            if (players[0].CustomProperties.ContainsKey("AvatarID"))
             {
                 int avatarID = (int)players[0].CustomProperties["AvatarID"];
                 if (avatarID >= 0 && avatarID < avatarSprites.Length)
                 {
                     winnerAvatarDisplay.sprite = avatarSprites[avatarID];
                     winnerAvatarDisplay.gameObject.SetActive(true);
+                }
+            }
+        }
+
+        if (players.Count > 1 && loserAvatarDisplay != null)
+        {
+            if (players[1].CustomProperties.ContainsKey("AvatarID"))
+            {
+                int avatarID = (int)players[1].CustomProperties["AvatarID"];
+                if (avatarID >= 0 && avatarID < avatarSprites.Length)
+                {
+                    loserAvatarDisplay.sprite = avatarSprites[avatarID];
+                    loserAvatarDisplay.gameObject.SetActive(true);
                 }
             }
         }
@@ -71,14 +88,35 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
         return 0;
     }
 
-    // --- ระบบแชร์ Facebook ---
     void ShareToFacebook()
     {
+        var players = PhotonNetwork.PlayerList
+            .OrderByDescending(p => GetScore(p)).ToList();
+
         string shareMessage = "";
-        if (topWinnerName == "เสมอ")
-            shareMessage = $"ดุเดือดจัด! แข่ง 3 มินิเกมรวด เสมอกันไปที่ {topScore} แต้ม! ใครแน่จริงเข้ามาลองเลย!";
-        else
-            shareMessage = $"ผม {topWinnerName} เอาชนะมินิเกม 3 ด่านรวดด้วยคะแนน {topScore} แต้ม! ใครเจ๋งเข้ามาลองเลย!";
+
+        if (players.Count >= 2)
+        {
+            string p1Name = players[0].NickName;
+            int p1Score = GetScore(players[0]);
+            string p2Name = players[1].NickName;
+            int p2Score = GetScore(players[1]);
+
+            if (p1Score == p2Score)
+            {
+                shareMessage = $"ดุเดือดจัด! แข่ง 3 มินิเกมรวด ผลออกมาเสมอ! ทั้ง {p1Name} และ {p2Name} ทำคะแนนเท่ากันที่ {p1Score} แต้ม! ใครแน่จริงเข้ามาลองเลย!";
+            }
+            else
+            {
+                shareMessage = $"จบเกมแล้ว! 🏆 {p1Name} เอาชนะไปด้วยคะแนน {p1Score} แต้ม! เบียด {p2Name} ที่ทำได้ {p2Score} แต้ม ไปแบบสุดมันส์! มาร่วมสนุกกับ DClub Minigames กัน!";
+            }
+        }
+        else if (players.Count == 1)
+        {
+            string p1Name = players[0].NickName;
+            int p1Score = GetScore(players[0]);
+            shareMessage = $"ผม {p1Name} เล่นเคลียร์ 3 มินิเกมรวด ทำคะแนนไปได้ {p1Score} แต้ม! ใครเจ๋งเข้ามาลองเลย!";
+        }
 
         string facebookShareURL = "https://www.facebook.com/sharer/sharer.php?u=" + gameURL + "&quote=" + System.Uri.EscapeUriString(shareMessage);
         Application.OpenURL(facebookShareURL);
