@@ -46,7 +46,7 @@ public class GameTimer : MonoBehaviour
     {
         float seconds = Mathf.CeilToInt(timeToDisplay);
         if (timerText != null)
-            timerText.text = "Time: " + seconds;
+            timerText.text = "Time   " + seconds;
     }
 
     void OnTimerFinished()
