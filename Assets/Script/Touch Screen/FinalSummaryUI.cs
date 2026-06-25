@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using UnityEngine.UI; // ต้องมีบรรทัดนี้เพื่อใช้ Button และ Image
+using UnityEngine.UI;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
@@ -13,8 +13,8 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
     public TextMeshProUGUI p2ScoreText;
 
     [Header("Social & Profile (เพิ่มใหม่)")]
-    public Image winnerAvatarDisplay; // ลากช่องโชว์รูปคนชนะมาใส่
-    public Sprite[] avatarSprites;    // ลากรูปเซ็ตเดิม เรียงให้ตรงกับหน้า Lobby
+    public Image winnerAvatarDisplay;
+    public Sprite[] avatarSprites;
     public Button facebookShareButton;
     public string gameURL = "https://pongsatornthn-art.github.io/DClub-Multiplayer-Web01/";
 
