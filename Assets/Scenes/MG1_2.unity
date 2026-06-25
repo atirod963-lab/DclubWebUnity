@@ -374,7 +374,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ab73715eefc9c7749bbbfe9e75293bb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeRemaining: 30
+  timeRemaining: 5
   timerText: {fileID: 831499675}
   nextSceneName: MG1_3
 --- !u!4 &305745927
@@ -1164,7 +1164,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 265.7, y: 884.4}
+  m_AnchoredPosition: {x: 265.7, y: 822}
   m_SizeDelta: {x: 403.811, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2047950307

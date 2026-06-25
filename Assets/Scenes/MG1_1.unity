@@ -1472,7 +1472,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ab73715eefc9c7749bbbfe9e75293bb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeRemaining: 45
+  timeRemaining: 5
   timerText: {fileID: 1102183277}
   nextSceneName: MG1_2
 --- !u!1 &1664445271

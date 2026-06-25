@@ -239,7 +239,6 @@ MonoBehaviour:
   p1ScoreText: {fileID: 1453399739}
   p2ScoreText: {fileID: 798900527}
   winnerAvatarDisplay: {fileID: 1505549201}
-  loserAvatarDisplay: {fileID: 1603927120}
   avatarSprites:
   - {fileID: 21300000, guid: 42aea7ac4a42b564180e7bc81e74c70a, type: 3}
   - {fileID: 21300000, guid: 228c07fc14b16824194ad26bd1a62384, type: 3}
@@ -536,7 +535,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!64 &667484883
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -905,7 +904,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 276, y: -345}
+  m_AnchoredPosition: {x: 259, y: -290}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &798900527
@@ -1389,7 +1388,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1726356670
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1429,7 +1428,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 8383d263c8cc28a4998c258cfa598401, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
