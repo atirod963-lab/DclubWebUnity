@@ -1379,8 +1379,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 200
-  m_fontSizeBase: 200
+  m_fontSize: 150
+  m_fontSizeBase: 150
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1873,6 +1873,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4102932401045819461, guid: dc09a542add16d044b077af3c8c2318f, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 1308772865, guid: df952fb677c8b3c4889fe40409671e0b, type: 3}
     - target: {fileID: 7529256606983227267, guid: dc09a542add16d044b077af3c8c2318f, type: 3}
       propertyPath: m_Name
       value: Junk food 2
@@ -1944,12 +1948,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   foodPrefabs:
-  - {fileID: 432164600047325986, guid: c64e40d4e56a3d340bbc4b2857dcb827, type: 3}
-  - {fileID: 5397227249097120597, guid: 2de8d2035dcd7094eba294c72fa20c2b, type: 3}
-  - {fileID: 2844232374774480753, guid: 16bd22c6b6b96e3429e39d63011e1928, type: 3}
-  - {fileID: 5618305820347562873, guid: 501cde4200a176d4c8f4a6eada167325, type: 3}
-  - {fileID: 7529256606983227267, guid: dc09a542add16d044b077af3c8c2318f, type: 3}
-  - {fileID: 5104686471438652896, guid: 84bb046717b3a184f9b9cef1ab69552a, type: 3}
+  - {fileID: 5555864847541621411, guid: ee0bef0b3a43e124da124775a3e49f90, type: 3}
+  - {fileID: 7134166244338174888, guid: d45f2a570c0d57a4f8da702cccc95adb, type: 3}
+  - {fileID: 2650655968700104551, guid: 6f5615f7e42cea64f94d75b8dea1c287, type: 3}
+  - {fileID: 7418239007047017643, guid: 6c182f6b46ae3ef4dba9769dc499a01c, type: 3}
+  - {fileID: 7389922617202416898, guid: 947086b0e1c50244dad13dd97c8cd0b0, type: 3}
+  - {fileID: 6190608044249657682, guid: f788e57211b8c72489ca1dddc04bcfbb, type: 3}
   spawnPoints:
   - {fileID: 3891734800675539483}
   - {fileID: 7587223146939924409}
@@ -2218,6 +2222,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6721057969037632210, guid: 2de8d2035dcd7094eba294c72fa20c2b, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -298465529, guid: df952fb677c8b3c4889fe40409671e0b, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2239,6 +2247,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3713712081477069362, guid: 84bb046717b3a184f9b9cef1ab69552a, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 941549482, guid: df952fb677c8b3c4889fe40409671e0b, type: 3}
     - target: {fileID: 4167629658097580270, guid: 84bb046717b3a184f9b9cef1ab69552a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 47.5
@@ -2308,6 +2320,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6351108105632582626, guid: 501cde4200a176d4c8f4a6eada167325, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -587990426, guid: df952fb677c8b3c4889fe40409671e0b, type: 3}
     - target: {fileID: 8383372760546322934, guid: 501cde4200a176d4c8f4a6eada167325, type: 3}
       propertyPath: m_LocalPosition.x
       value: 121
@@ -2409,6 +2425,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9148626537163532613, guid: 16bd22c6b6b96e3429e39d63011e1928, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -1979220483, guid: df952fb677c8b3c4889fe40409671e0b, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2435,6 +2455,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 30986709170003411, guid: c64e40d4e56a3d340bbc4b2857dcb827, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 1320830448, guid: df952fb677c8b3c4889fe40409671e0b, type: 3}
     - target: {fileID: 432164600047325986, guid: c64e40d4e56a3d340bbc4b2857dcb827, type: 3}
       propertyPath: m_Name
       value: Healthy food 1
