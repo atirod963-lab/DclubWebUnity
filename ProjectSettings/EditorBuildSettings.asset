@@ -9,13 +9,13 @@ EditorBuildSettings:
     path: Assets/Scenes/menu.unity
     guid: a3d00a2670bea5d4b97d7d0aac9d252e
   - enabled: 1
-    path: Assets/Scenes/MG1.1.unity
+    path: Assets/Scenes/MG1_1.unity
     guid: dd954813e22d9c540bf65004eb55158d
   - enabled: 1
-    path: Assets/Scenes/MG1.2.unity
+    path: Assets/Scenes/MG1_2.unity
     guid: 48179c8c99b415741a20129bf635d7f1
   - enabled: 1
-    path: Assets/Scenes/MG1.3.unity
+    path: Assets/Scenes/MG1_3.unity
     guid: 97770e1ce58ef6140a21c9ca265cca00
   - enabled: 1
     path: Assets/Scenes/SummaryScene.unity

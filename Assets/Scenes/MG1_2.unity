@@ -376,7 +376,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   timeRemaining: 30
   timerText: {fileID: 831499675}
-  nextSceneName: MInigame3
+  nextSceneName: MG1_3
 --- !u!4 &305745927
 Transform:
   m_ObjectHideFlags: 0

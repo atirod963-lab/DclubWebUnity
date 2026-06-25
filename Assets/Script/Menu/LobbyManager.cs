@@ -148,7 +148,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.IsMasterClient)
         {
-            PhotonNetwork.LoadLevel("Test Kong");
+            PhotonNetwork.LoadLevel("MG1_1");
         }
     }
 
