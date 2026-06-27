@@ -53,7 +53,6 @@ public class TouchManager2D : MonoBehaviour
         GameObject sObj = GameObject.Find(scoreTextName);
         GameObject tObj = GameObject.Find(timerTextName);
 
-
         if (sObj != null)
         {
             if (scoreText != null && scoreText.gameObject != sObj)
@@ -108,21 +107,39 @@ public class TouchManager2D : MonoBehaviour
 
         if (hitCollider != null)
         {
+            // 🟢 กรณีแตะโดนของที่ "ได้คะแนน"
             if (hitCollider.CompareTag("Healthy Food") || hitCollider.CompareTag("Hoop") || hitCollider.CompareTag("Water"))
             {
                 score += 1;
                 UpdateScoreUI();
+
+                // ---> ส่งคะแนนไปให้โฮสต์ผ่าน GameManager! <---
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.AddScoreToMyTeam();
+                }
+
                 if (hitCollider.CompareTag("Hoop"))
                 {
                     HoopController hoop = hitCollider.GetComponent<HoopController>();
                     if (hoop != null) hoop.MoveToRandomPosition();
                 }
-                else if (!hitCollider.CompareTag("Hoop")) Destroy(hitCollider.gameObject);
+                else if (!hitCollider.CompareTag("Hoop"))
+                {
+                    Destroy(hitCollider.gameObject);
+                }
             }
             else if (hitCollider.CompareTag("Junk Food"))
             {
                 score -= 1;
                 UpdateScoreUI();
+
+                // ---> แทรกบรรทัดนี้เพิ่มเข้าไปครับ <---
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.SubtractScoreToMyTeam();
+                }
+
                 Destroy(hitCollider.gameObject);
             }
         }
@@ -133,6 +150,7 @@ public class TouchManager2D : MonoBehaviour
         if (scoreText != null)
             scoreText.text = "Score: " + score;
 
+        // ส่วนนี้ส่งคะแนนเข้าตัวผู้เล่นเอง (เก็บไว้ก็ไม่เสียหายครับ)
         if (PhotonNetwork.IsConnected && PhotonNetwork.InRoom)
         {
             ExitGames.Client.Photon.Hashtable hash = new ExitGames.Client.Photon.Hashtable();
@@ -140,4 +158,5 @@ public class TouchManager2D : MonoBehaviour
             PhotonNetwork.LocalPlayer.SetCustomProperties(hash);
         }
     }
+
 }
