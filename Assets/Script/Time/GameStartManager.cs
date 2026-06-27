@@ -82,8 +82,8 @@ public class GameStartManager : MonoBehaviour
         if (TouchManager2D.Instance != null)
             TouchManager2D.Instance.isGameActive = true;
 
-        if (GameManager.Instance != null)
-            GameManager.Instance.StartMiniGame();
+        if (MG3_BottleGame.Instance != null)
+            MG3_BottleGame.Instance.StartMiniGame();
 
         GameTimer timer = FindObjectOfType<GameTimer>();
         if (timer != null)

@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class GameManager : MonoBehaviour
+public class MG3_BottleGame : MonoBehaviour
 {
-    public static GameManager Instance;
+    public static MG3_BottleGame Instance;
 
     [Header("UI References")]
     public Image bottleFullImage;

@@ -1,172 +1,186 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.UI;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
-using ExitGames.Client.Photon; // จำเป็นสำหรับการใช้ Hashtable
+using ExitGames.Client.Photon;
+using UnityEngine.SceneManagement;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class LobbyManager : MonoBehaviourPunCallbacks
 {
-    [Header("UI References")]
-    public TMP_InputField nameInputField;
-    public TMP_InputField roomCodeInput;
-    public TextMeshProUGUI showCodeText;
-    public TextMeshProUGUI statusText;
-    public TextMeshProUGUI playerBarText;
+    [Header("UI Panels")]
+    public GameObject mainMenuPanel;
+    public GameObject hostDashboardPanel;
+    public GameObject playerJoinPanel;
+    // ลบ playerTeamPanel ออกไปแล้ว เพราะเรารวมหน้ากัน!
 
-    [Header("Panels")]
-    public GameObject createRoomPanel;
-    public GameObject joinRoomPanel;
-
-    [Header("Buttons")]
-    public Button createRoomButton;
-    public Button joinRoomButton;
+    [Header("Host UI")]
+    public TextMeshProUGUI roomCodeText;
+    public TextMeshProUGUI greenTeamListText;
+    public TextMeshProUGUI redTeamListText;
     public Button startGameButton;
 
-    [Header("Avatar Selection (เพิ่มใหม่)")]
-    public Image avatarDisplay; // ช่องโชว์รูปที่เลือกอยู่
-    public Sprite[] avatarSprites; // ลากรูปทั้งหมดมาใส่ตรงนี้
-    private int currentAvatarIndex = 0;
+    [Header("Player UI")]
+    public TMP_InputField playerNameInput;
+    public TMP_InputField roomCodeInput;
+    public TextMeshProUGUI playerStatusText;
+    public TextMeshProUGUI warningText;
+
+    private bool isHost = false;
 
     void Start()
     {
         PhotonNetwork.AutomaticallySyncScene = true;
-
-        SetStatus("Connecting...");
-        SetButtonsInteractable(false);
-        if (startGameButton != null) startGameButton.gameObject.SetActive(false);
-
-        UpdateAvatarDisplay(); // โชว์รูปแรกทันทีที่เปิดเกม
-
         PhotonNetwork.ConnectUsingSettings();
-    }
 
-    // --- ระบบปุ่มลูกศรเลือกรูป ---
-    public void OnClickNextAvatar()
-    {
-        if (avatarSprites == null || avatarSprites.Length == 0) return;
-        currentAvatarIndex = (currentAvatarIndex + 1) % avatarSprites.Length;
-        UpdateAvatarDisplay();
+        if (warningText != null) warningText.gameObject.SetActive(false);
+        ShowPanel(mainMenuPanel);
     }
-
-    public void OnClickPrevAvatar()
-    {
-        if (avatarSprites == null || avatarSprites.Length == 0) return;
-        currentAvatarIndex--;
-        if (currentAvatarIndex < 0) currentAvatarIndex = avatarSprites.Length - 1;
-        UpdateAvatarDisplay();
-    }
-
-    void UpdateAvatarDisplay()
-    {
-        if (avatarDisplay != null && avatarSprites.Length > 0)
-        {
-            avatarDisplay.sprite = avatarSprites[currentAvatarIndex];
-        }
-    }
-    // -------------------------
 
     public override void OnConnectedToMaster()
     {
-        SetStatus("Connected!");
+        Debug.Log("เชื่อมต่อเซิร์ฟเวอร์ Photon สำเร็จ!");
         PhotonNetwork.JoinLobby();
     }
 
-    public override void OnJoinedLobby()
+    bool CheckNameInput()
     {
-        SetStatus("Ready!");
-        SetButtonsInteractable(true);
-    }
-
-    public override void OnJoinedRoom()
-    {
-        if (joinRoomPanel != null) joinRoomPanel.SetActive(false);
-        if (createRoomPanel != null) createRoomPanel.SetActive(true);
-        if (showCodeText != null) showCodeText.text = "Room Code: " + PhotonNetwork.CurrentRoom.Name;
-
-        SetStatus(PhotonNetwork.IsMasterClient ? "You are the Host" : "Joined! Waiting for host...");
-        UpdatePlayerListBar();
-    }
-
-    public override void OnPlayerEnteredRoom(Player newPlayer)
-    {
-        SetStatus($"Player {newPlayer.NickName} joined! 🎉");
-        UpdatePlayerListBar();
-    }
-
-    public override void OnPlayerLeftRoom(Player otherPlayer)
-    {
-        SetStatus($"Player {otherPlayer.NickName} left 😢");
-        UpdatePlayerListBar();
-    }
-
-    void UpdatePlayerListBar()
-    {
-        if (playerBarText == null) return;
-
-        string player1Name = "Waiting...";
-        string player2Name = "Waiting...";
-
-        Player[] currentPlayers = PhotonNetwork.PlayerList;
-
-        if (currentPlayers.Length > 0) player1Name = currentPlayers[0].NickName;
-        if (currentPlayers.Length > 1) player2Name = currentPlayers[1].NickName;
-
-        playerBarText.text = $"[ {player1Name} ]   VS   [ {player2Name} ]";
-
-        if (startGameButton != null)
+        if (playerNameInput == null || string.IsNullOrWhiteSpace(playerNameInput.text))
         {
-            startGameButton.gameObject.SetActive(PhotonNetwork.IsMasterClient);
+            if (warningText != null) StartCoroutine(ShowWarningRoutine());
+            return false;
         }
+        PhotonNetwork.NickName = playerNameInput.text.Trim();
+        return true;
     }
 
-    public void OnClickCreateRoom()
+    IEnumerator ShowWarningRoutine()
     {
-        SavePlayerNameAndAvatar();
-        if (!PhotonNetwork.IsConnectedAndReady || !PhotonNetwork.InLobby) return;
+        warningText.gameObject.SetActive(true);
+        yield return new WaitForSeconds(2f);
+        warningText.gameObject.SetActive(false);
+    }
 
+    // ==========================================
+    // ฝั่ง HOST
+    // ==========================================
+    public void OnClickCreateHostRoom()
+    {
+        if (!CheckNameInput()) return;
+
+        isHost = true;
         string randomCode = Random.Range(1000, 10000).ToString();
-        RoomOptions roomOptions = new RoomOptions() { MaxPlayers = 2 };
-        PhotonNetwork.CreateRoom(randomCode, roomOptions);
-        SetStatus("Creating Room...");
+        RoomOptions options = new RoomOptions { MaxPlayers = 20 };
+        PhotonNetwork.CreateRoom(randomCode, options);
     }
 
-    public void OnClickJoinRoom()
+    // ==========================================
+    // ฝั่ง PLAYER (ฉบับรวบยอด!)
+    // ==========================================
+    public void OnClickGoToJoin()
     {
-        SavePlayerNameAndAvatar();
-        string joinCode = roomCodeInput != null ? roomCodeInput.text.Trim() : "";
-        if (string.IsNullOrEmpty(joinCode))
+        if (!CheckNameInput()) return;
+
+        isHost = false;
+        ShowPanel(playerJoinPanel);
+        if (playerStatusText != null) playerStatusText.text = ""; // ล้างข้อความเก่า
+    }
+
+    // ฟังก์ชันใหม่: กรอกรหัสปุ๊บ เข้าห้องพร้อมเลือกทีมเลย
+    public void OnClickJoinRoomWithTeam(string teamName)
+    {
+        string code = roomCodeInput.text.Trim();
+
+        if (string.IsNullOrEmpty(code))
         {
-            SetStatus("Please enter room code!");
+            if (playerStatusText != null) playerStatusText.text = "กรุณาใส่รหัสห้องก่อนกดเลือกทีม!";
             return;
         }
-        SetStatus("Joining Room...");
-        PhotonNetwork.JoinRoom(joinCode);
+
+        // เซ็ตทีมและบทบาทรอไว้เลย ตั้งแต่ยังไม่เข้าห้อง
+        Hashtable props = new Hashtable { { "Team", teamName }, { "Role", "Player" } };
+        PhotonNetwork.LocalPlayer.SetCustomProperties(props);
+
+        if (playerStatusText != null) playerStatusText.text = "กำลังเข้าห้อง... (ทีม " + teamName + ")";
+
+        PhotonNetwork.JoinRoom(code);
+    }
+
+    public void OnClickSinglePlayer() { SceneManager.LoadScene("MG1_1"); }
+    public void OnClickBackToMain() { ShowPanel(mainMenuPanel); }
+
+    // ==========================================
+    // ระบบทำงานอัตโนมัติเมื่อเข้าห้องสำเร็จ
+    // ==========================================
+    public override void OnJoinedRoom()
+    {
+        Hashtable props = new Hashtable();
+
+        if (isHost)
+        {
+            ShowPanel(hostDashboardPanel);
+            if (roomCodeText != null) roomCodeText.text = PhotonNetwork.CurrentRoom.Name;
+
+            props["Role"] = "Spectator";
+            props["Team"] = "None";
+            PhotonNetwork.LocalPlayer.SetCustomProperties(props);
+        }
+        else
+        {
+            // ของ Player ไม่ต้องเปลี่ยนหน้าแล้ว ให้อยู่หน้าเดิมแต่ขึ้นข้อความบอกว่าสำเร็จ
+            if (playerStatusText != null)
+            {
+                string myTeam = (string)PhotonNetwork.LocalPlayer.CustomProperties["Team"];
+                playerStatusText.text = "เข้าห้องสำเร็จ! รอโฮสต์กดเริ่มเกม... (ทีม " + myTeam + ")";
+            }
+        }
+    }
+
+    public override void OnJoinRoomFailed(short returnCode, string message)
+    {
+        // แถบแจ้งเตือนเผื่อผู้เล่นกรอกรหัสผิดห้อง
+        if (playerStatusText != null) playerStatusText.text = "ไม่พบห้องนี้! ตรวจสอบรหัสอีกครั้ง";
+    }
+
+    public override void OnPlayerEnteredRoom(Player newPlayer) { UpdateHostUI(); }
+    public override void OnPlayerLeftRoom(Player otherPlayer) { UpdateHostUI(); }
+    public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps) { UpdateHostUI(); }
+
+    void UpdateHostUI()
+    {
+        if (!isHost) return;
+
+        string greenList = "Green Team:\n";
+        string redList = "Red Team:\n";
+
+        foreach (Player p in PhotonNetwork.PlayerList)
+        {
+            if (p.CustomProperties.ContainsKey("Role") && (string)p.CustomProperties["Role"] == "Player")
+            {
+                string team = p.CustomProperties.ContainsKey("Team") ? (string)p.CustomProperties["Team"] : "None";
+                if (team == "Green") greenList += p.NickName + "\n";
+                else if (team == "Red") redList += p.NickName + "\n";
+            }
+        }
+
+        if (greenTeamListText != null) greenTeamListText.text = greenList;
+        if (redTeamListText != null) redTeamListText.text = redList;
+
+        if (startGameButton != null) startGameButton.interactable = (PhotonNetwork.PlayerList.Length > 1);
     }
 
     public void OnClickStartGame()
     {
-        if (PhotonNetwork.IsMasterClient)
-        {
-            PhotonNetwork.LoadLevel("MG1_1");
-        }
+        if (PhotonNetwork.IsMasterClient) PhotonNetwork.LoadLevel("MG1_1");
     }
 
-    // อัปเดตฟังก์ชันนี้เพื่อเซฟทั้งชื่อและ ID รูปภาพ
-    void SavePlayerNameAndAvatar()
+    void ShowPanel(GameObject activePanel)
     {
-        string pName = nameInputField != null ? nameInputField.text.Trim() : "";
-        PhotonNetwork.NickName = !string.IsNullOrEmpty(pName) ? pName : "Player_" + Random.Range(100, 1000);
-
-        Hashtable props = new Hashtable();
-        props["AvatarID"] = currentAvatarIndex;
-        PhotonNetwork.LocalPlayer.SetCustomProperties(props);
-    }
-
-    void SetStatus(string msg) { if (statusText != null) statusText.text = msg; }
-    void SetButtonsInteractable(bool state)
-    {
-        if (createRoomButton != null) createRoomButton.interactable = state;
-        if (joinRoomButton != null) joinRoomButton.interactable = state;
+        if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
+        if (hostDashboardPanel != null) hostDashboardPanel.SetActive(false);
+        if (playerJoinPanel != null) playerJoinPanel.SetActive(false);
+        if (activePanel != null) activePanel.SetActive(true);
     }
 }
