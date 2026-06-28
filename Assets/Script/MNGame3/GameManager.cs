@@ -1,15 +1,33 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    [Header("UI References")]
-    public Image bottleFullImage;
+    [Header("Player Visuals")]
+    public SpriteRenderer playerSpriteRenderer;
+    public Sprite idleSprite;
+    public Sprite plantingSprite;
 
-    [Header("Bottle Shake")]
-    public RectTransform bottleRect; // ลาก Image ของขวดมาใส่
+    [Header("Background / Ground Movement")]
+    public Transform groundTransform;
+    public float moveSpeed = 5f;
+    public float moveDuration = 0.2f;
+
+    [Header("Tree Settings")]
+    public GameObject treePrefab;
+    public Transform treeSpawnPoint;
+
+    // ================= [เพิ่มส่วนควบคุมระยะห่างต้นไม้] =================
+    [Tooltip("ระยะห่างขั้นต่ำระหว่างต้นไม้แต่ละต้น")]
+    public float minTreeDistance = 0.5f;
+
+    [Tooltip("ช่วงราคาการสุ่มเยื้องตำแหน่ง (แกน X และ Y) เพื่อความสุ่มเป็นธรรมชาติ")]
+    public Vector2 randomOffsetRange = new Vector2(0.2f, 0.1f);
+
+    private Vector3 lastTreeLocalPosition = new Vector3(999f, 999f, 999f);
+    // =============================================================
 
     [Header("Game Settings")]
     public int targetScore = 100;
@@ -20,9 +38,7 @@ public class GameManager : MonoBehaviour
 
     private int currentScore = 0;
     private bool isGameActive = false;
-
-    // ค่าความแรงในการเขย่า
-    private float shakePower = 0f;
+    private Vector3 targetGroundPos;
 
     void Awake()
     {
@@ -32,7 +48,15 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         currentScore = 0;
-        UpdateBottleFill();
+        if (groundTransform != null)
+        {
+            targetGroundPos = groundTransform.position;
+        }
+
+        if (playerSpriteRenderer != null && idleSprite != null)
+        {
+            playerSpriteRenderer.sprite = idleSprite;
+        }
     }
 
     void Update()
@@ -41,13 +65,15 @@ public class GameManager : MonoBehaviour
             return;
 
         if (Input.GetMouseButtonDown(0) ||
-            (Input.touchCount > 0 &&
-             Input.GetTouch(0).phase == TouchPhase.Began))
+            (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began))
         {
             AddScore();
         }
 
-        UpdateBottleShake();
+        if (groundTransform != null)
+        {
+            groundTransform.position = Vector3.Lerp(groundTransform.position, targetGroundPos, Time.deltaTime * moveSpeed);
+        }
     }
 
     public void StartMiniGame()
@@ -65,11 +91,18 @@ public class GameManager : MonoBehaviour
 
         currentScore++;
 
-        // เพิ่มแรงหมุนทุกครั้งที่กด
-        shakePower += 6f;
-        shakePower = Mathf.Clamp(shakePower, 0f, 25f);
+        // 1. เปลี่ยน Sprite ตัวละครเป็นท่าปลูก
+        StartCoroutine(PlantingAnimationRoutine());
 
-        UpdateBottleFill();
+        // 2. เรียกฟังก์ชั่นสร้างต้นไม้ (ที่มีการเช็กระยะห่าง)
+        SpawnTree();
+
+        // 3. สั่งให้พื้นดินคำนวณตำแหน่งถอยไปทางซ้าย
+        if (groundTransform != null)
+        {
+            targetGroundPos += new Vector3(-1.5f, 0f, 0f);
+        }
+
         SpawnFloatingText();
 
         if (currentScore >= targetScore)
@@ -79,34 +112,44 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void UpdateBottleFill()
+    void SpawnTree()
     {
-        if (bottleFullImage != null)
+        if (treePrefab == null || treeSpawnPoint == null || groundTransform == null) return;
+
+        // 1. สุ่มเยื้องตำแหน่งตรงจุดเกิด
+        float randomX = Random.Range(-randomOffsetRange.x, randomOffsetRange.x);
+        float randomY = Random.Range(-randomOffsetRange.y, randomOffsetRange.y);
+        Vector3 worldSpawnPos = treeSpawnPoint.position + new Vector3(randomX, randomY, 0f);
+
+        // 2. แปลงค่าพิกัดโลก (World) ให้เป็นพิกัดบนพื้นดิน (Local Space ของ groundTransform)
+        Vector3 localSpawnPos = groundTransform.InverseTransformPoint(worldSpawnPos);
+
+        // 3. เช็กระยะห่างเทียบกับต้นล่าสุดบนพื้นดินชิ้นเดียวกัน
+        float distanceSinceLastTree = Vector3.Distance(localSpawnPos, lastTreeLocalPosition);
+
+        // 4. ถ้าเป็นการกดครั้งแรกสุด หรือ ห่างเกินระยะขั้นต่ำ ให้สร้างต้นไม้
+        if (lastTreeLocalPosition.x > 900f || distanceSinceLastTree >= minTreeDistance)
         {
-            // 1.0 = เต็ม, 0.0 = หมด
-            bottleFullImage.fillAmount =
-                1f - ((float)currentScore / targetScore);
+            // สร้างต้นไม้ขึ้นมาในฉาก
+            GameObject newTree = Instantiate(treePrefab, worldSpawnPos, Quaternion.identity);
+
+            // ปักลงไปบนดิน ให้เลื่อนตามกัน
+            newTree.transform.SetParent(groundTransform);
+
+            // บันทึกตำแหน่ง Local ไว้เช็กในครั้งต่อไป
+            lastTreeLocalPosition = localSpawnPos;
+            Destroy(newTree, 3f);
         }
     }
 
-    void UpdateBottleShake()
+    IEnumerator PlantingAnimationRoutine()
     {
-        if (bottleRect == null)
-            return;
-
-        // ค่อย ๆ ลดแรงหมุนเมื่อหยุดกด
-        shakePower = Mathf.Lerp(
-            shakePower,
-            0f,
-            Time.deltaTime * 3f);
-
-        // หมุนซ้าย-ขวา
-        float angle =
-            Mathf.Sin(Time.time * 18f) *
-            shakePower;
-
-        bottleRect.localRotation =
-            Quaternion.Euler(0f, 0f, angle);
+        if (playerSpriteRenderer != null && plantingSprite != null)
+        {
+            playerSpriteRenderer.sprite = plantingSprite;
+            yield return new WaitForSeconds(moveDuration);
+            playerSpriteRenderer.sprite = idleSprite;
+        }
     }
 
     void SpawnFloatingText()
@@ -120,9 +163,7 @@ public class GameManager : MonoBehaviour
                 inputPosition = Input.GetTouch(0).position;
             }
 
-            GameObject textObj =
-                Instantiate(floatingTextPrefab, canvas.transform);
-
+            GameObject textObj = Instantiate(floatingTextPrefab, canvas.transform);
             textObj.transform.position = inputPosition;
         }
     }
