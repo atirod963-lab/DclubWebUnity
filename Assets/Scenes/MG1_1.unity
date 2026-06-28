@@ -1472,7 +1472,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ab73715eefc9c7749bbbfe9e75293bb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeRemaining: 5
+  timeRemaining: 20
   timerText: {fileID: 1102183277}
   nextSceneName: MG1_2
 --- !u!1 &1664445271
@@ -1963,7 +1963,8 @@ MonoBehaviour:
   - {fileID: 1978481788}
   - {fileID: 448878445}
   - {fileID: 175480338}
-  spawnInterval: 0.3
+  spawnDuration: 18
+  copiesPerPrefab: 9
 --- !u!1001 &2287918017465492826
 PrefabInstance:
   m_ObjectHideFlags: 0

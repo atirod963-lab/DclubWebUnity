@@ -1,3 +1,4 @@
+using System.Collections; // <--- [จุดที่ 1] เพิ่มเพื่อใช้ระบบหน่วงเวลา Coroutine
 using UnityEngine;
 
 public class HoopController : MonoBehaviour
@@ -9,26 +10,48 @@ public class HoopController : MonoBehaviour
     [Tooltip("ระยะขอบหน้าจอ เพื่อไม่ให้แป้นบาสเกิดชิดขอบจอเกินไป (ค่า 0.1 ถึง 0.2 กำลังดี)")]
     public float padding = 0.15f;
 
+    // --- [จุดที่ 2] เพิ่มตัวแปรเก็บอนิเมเตอร์ และสวิตช์เบรกเวลา ---
+    private Animator anim;
+    private bool isPlaying = false;
+
     void Start()
     {
-        // เริ่มเกมมาให้สุ่มตำแหน่งทันที
+        anim = GetComponent<Animator>(); // ดึงคอมโพเนนต์ Animator มาเตรียมไว้
         MoveToRandomPosition();
     }
 
     void Update()
     {
-        // เวลานับถอยหลังจะหยุดอัตโนมัติช่วงที่นับ 3 2 1 (เพราะ Time.timeScale = 0)
+        // --- [จุดที่ 3] ถ้ากำลังเล่นอนิเมชั่นอยู่ ให้แช่แข็งเวลานับถอยหลังไว้ก่อน ---
+        if (isPlaying) return;
+
         timer -= Time.deltaTime;
 
-        // ถ้านับครบ 1 วินาที โดยที่ไม่มีคนคลิก
         if (timer <= 0f)
         {
-            MoveToRandomPosition(); // สั่งย้ายตำแหน่ง
+            MoveToRandomPosition();
         }
     }
 
-    // ฟังก์ชันสำหรับวาร์ปย้ายตำแหน่ง (เรียกใช้เมื่อครบเวลา หรือถูกคลิก)
-    // ฟังก์ชันสำหรับวาร์ปย้ายตำแหน่ง
+    // --- [จุดที่ 4] เพิ่มระบบรับคลิก -> เล่นอนิเมชั่น -> ย้ายที่ ---
+    void OnMouseDown()
+    {
+        if (isPlaying) return; // กันกดเบิ้ล
+        StartCoroutine(PlayAnimThenMove());
+    }
+
+    IEnumerator PlayAnimThenMove()
+    {
+        isPlaying = true;
+        if (anim != null) anim.SetTrigger("Play");
+
+        yield return new WaitForSeconds(0.66f); // หน่วงรอจนอนิเมชั่นเล่นจบ (0.33วิ / สปีด 0.5)
+
+        MoveToRandomPosition(); // เรียกใช้ฟังก์ชันย้ายที่เดิมของคุณ
+        isPlaying = false;
+    }
+
+    // ฟังก์ชันเดิมของคุณ 100% ไม่ได้แตะต้องครับ
     public void MoveToRandomPosition()
     {
         timer = moveInterval;
@@ -36,10 +59,8 @@ public class HoopController : MonoBehaviour
         float randomX = Random.Range(padding, 1f - padding);
         float randomY = Random.Range(padding, 1f - padding);
 
-        // 1. [ส่วนที่แก้ไข] ดึงระยะห่างกล้องจริงๆ แทนการใช้เลข 10f ตายตัว
         float distanceToCamera = Mathf.Abs(Camera.main.transform.position.z);
 
-        // 2. สร้างพิกัดใหม่ที่ใช้ระยะกล้องที่แท้จริง
         Vector3 viewportPosition = new Vector3(randomX, randomY, distanceToCamera);
         Vector3 worldPosition = Camera.main.ViewportToWorldPoint(viewportPosition);
 
