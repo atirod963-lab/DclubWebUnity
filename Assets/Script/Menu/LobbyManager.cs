@@ -122,6 +122,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     public void OnClickCreateRoom()
     {
+        SoundManager.Instance?.UnlockAudio();
+        SoundManager.Instance?.PlaySFX(SFXId.UIButtonClick);
         SavePlayerNameAndAvatar();
         if (!PhotonNetwork.IsConnectedAndReady || !PhotonNetwork.InLobby) return;
 
@@ -133,6 +135,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     public void OnClickJoinRoom()
     {
+        SoundManager.Instance?.UnlockAudio();
+        SoundManager.Instance?.PlaySFX(SFXId.UIButtonClick);
         SavePlayerNameAndAvatar();
         string joinCode = roomCodeInput != null ? roomCodeInput.text.Trim() : "";
         if (string.IsNullOrEmpty(joinCode))
@@ -146,6 +150,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     public void OnClickStartGame()
     {
+        SoundManager.Instance?.PlaySFX(SFXId.UIButtonClick);
         if (PhotonNetwork.IsMasterClient)
         {
             PhotonNetwork.LoadLevel("MG1_1");

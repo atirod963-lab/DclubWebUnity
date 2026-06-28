@@ -51,6 +51,8 @@ public class GameTimer : MonoBehaviour
 
     void OnTimerFinished()
     {
+        SoundManager.Instance?.PlaySFX(SFXId.GameOver);
+
         if (TouchManager2D.Instance != null)
             TouchManager2D.Instance.isGameActive = false;
 

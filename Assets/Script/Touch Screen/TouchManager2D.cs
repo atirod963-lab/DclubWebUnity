@@ -114,15 +114,21 @@ public class TouchManager2D : MonoBehaviour
                 UpdateScoreUI();
                 if (hitCollider.CompareTag("Hoop"))
                 {
+                    SoundManager.Instance?.PlaySFX(SFXId.HoopShoot);
                     HoopController hoop = hitCollider.GetComponent<HoopController>();
                     if (hoop != null) hoop.MoveToRandomPosition();
                 }
-                else if (!hitCollider.CompareTag("Hoop")) Destroy(hitCollider.gameObject);
+                else
+                {
+                    SoundManager.Instance?.PlaySFX(SFXId.CorrectTap);
+                    Destroy(hitCollider.gameObject);
+                }
             }
             else if (hitCollider.CompareTag("Junk Food"))
             {
                 score -= 1;
                 UpdateScoreUI();
+                SoundManager.Instance?.PlaySFX(SFXId.WrongTap);
                 Destroy(hitCollider.gameObject);
             }
         }

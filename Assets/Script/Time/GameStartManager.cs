@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using TMPro;
 
@@ -12,6 +12,9 @@ public class GameStartManager : MonoBehaviour
     [Header("Tutorial Settings (หน้าสอนเล่น)")]
     public GameObject tutorialPanel;
     public float tutorialDisplayTime = 5f;
+
+    private bool countdownTickPlayed = false;
+    private bool countdownStartPlayed = false;
 
     void Awake()
     {
@@ -68,11 +71,21 @@ public class GameStartManager : MonoBehaviour
         while (count > 0)
         {
             if (countdownText != null) countdownText.text = count.ToString();
+            if (!countdownTickPlayed)
+            {
+                SoundManager.Instance?.PlaySFX(SFXId.CountdownTick);
+                countdownTickPlayed = true;
+            }
             yield return new WaitForSecondsRealtime(1f);
             count--;
         }
 
         if (countdownText != null) countdownText.text = "START!";
+        if (!countdownStartPlayed)
+        {
+            SoundManager.Instance?.PlaySFX(SFXId.CountdownStart);
+            countdownStartPlayed = true;
+        }
         yield return new WaitForSecondsRealtime(1f);
 
         if (countdownText != null) countdownText.gameObject.SetActive(false);

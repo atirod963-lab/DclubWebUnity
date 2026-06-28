@@ -105,6 +105,8 @@ public class GameManager : MonoBehaviour
 
         SpawnFloatingText();
 
+        SoundManager.Instance?.PlaySFX(SFXId.TreePlant);
+
         if (currentScore >= targetScore)
         {
             currentScore = targetScore;

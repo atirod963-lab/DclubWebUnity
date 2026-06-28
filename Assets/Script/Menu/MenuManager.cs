@@ -27,6 +27,9 @@ public class MenuManager : MonoBehaviour
 
     public void OnPlayButtonClick()
     {
+        SoundManager.Instance?.UnlockAudio();
+        SoundManager.Instance?.PlaySFX(SFXId.UIButtonClick);
+
         if (nameInputField == null || string.IsNullOrWhiteSpace(nameInputField.text))
         {
             if (warningText != null) StartCoroutine(ShowWarningRoutine());
@@ -47,18 +50,21 @@ public class MenuManager : MonoBehaviour
 
     public void OnCreateButtonClick()
     {
+        SoundManager.Instance?.PlaySFX(SFXId.UIButtonClick);
         lobbySelectionPanel.SetActive(false);
         createRoomPanel.SetActive(true);
     }
 
     public void OnJoinButtonClick()
     {
+        SoundManager.Instance?.PlaySFX(SFXId.UIButtonClick);
         lobbySelectionPanel.SetActive(false);
         joinRoomPanel.SetActive(true);
     }
 
     public void OnBackToLobbyClick()
     {
+        SoundManager.Instance?.PlaySFX(SFXId.UIButtonClick);
         createRoomPanel.SetActive(false);
         joinRoomPanel.SetActive(false);
         lobbySelectionPanel.SetActive(true);
@@ -66,6 +72,7 @@ public class MenuManager : MonoBehaviour
 
     public void OnBackToMainMenuClick()
     {
+        SoundManager.Instance?.PlaySFX(SFXId.UIButtonClick);
         lobbySelectionPanel.SetActive(false);
         mainMenuPanel.SetActive(true);
     }
