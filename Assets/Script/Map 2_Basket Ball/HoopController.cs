@@ -1,28 +1,28 @@
-using System.Collections; // <--- [�ش��� 1] �����������к�˹�ǧ���� Coroutine
+﻿using System.Collections; // <--- [¨Ø´·Õè 1] à¾ÔèÁà¾×èÍãªéÃÐººË¹èÇ§àÇÅÒ Coroutine
 using UnityEngine;
 
 public class HoopController : MonoBehaviour
 {
-    [Tooltip("���ҷ�������鹺�����躹�͡�͹���� (�Թҷ�)")]
+    [Tooltip("àÇÅÒ·Õè¨ÐãËéá»é¹ºÒÊÍÂÙèº¹¨Í¡èÍ¹ÂéÒÂ (ÇÔ¹Ò·Õ)")]
     public float moveInterval = 1f;
     private float timer;
 
-    [Tooltip("���Тͺ˹�Ҩ� �����������鹺���Դ�Դ�ͺ���Թ� (��� 0.1 �֧ 0.2 ���ѧ��)")]
+    [Tooltip("ÃÐÂÐ¢ÍºË¹éÒ¨Í à¾×èÍäÁèãËéá»é¹ºÒÊà¡Ô´ªÔ´¢Íº¨Íà¡Ô¹ä» (¤èÒ 0.1 ¶Ö§ 0.2 ¡ÓÅÑ§´Õ)")]
     public float padding = 0.15f;
 
-    // --- [�ش��� 2] �����������͹������� �����Ե���á���� ---
+    // --- [¨Ø´·Õè 2] à¾ÔèÁµÑÇá»Ãà¡çºÍ¹ÔàÁàµÍÃì áÅÐÊÇÔµªìàºÃ¡àÇÅÒ ---
     private Animator anim;
     private bool isPlaying = false;
 
     void Start()
     {
-        anim = GetComponent<Animator>(); // �֧����๹�� Animator ����������
+        anim = GetComponent<Animator>(); // ´Ö§¤ÍÁâ¾à¹¹µì Animator ÁÒàµÃÕÂÁäÇé
         MoveToRandomPosition();
     }
 
     void Update()
     {
-        // --- [�ش��� 3] ��ҡ��ѧ���͹���������� ����������ҹѺ�����ѧ����͹ ---
+        // --- [¨Ø´·Õè 3] ¶éÒ¡ÓÅÑ§àÅè¹Í¹ÔàÁªÑè¹ÍÂÙè ãËéáªèá¢ç§àÇÅÒ¹Ñº¶ÍÂËÅÑ§äÇé¡èÍ¹ ---
         if (isPlaying) return;
 
         timer -= Time.deltaTime;
@@ -33,25 +33,30 @@ public class HoopController : MonoBehaviour
         }
     }
 
-    // --- [�ش��� 4] �����к��Ѻ��ԡ -> ���͹������ -> ���·�� ---
+    // --- [¨Ø´·Õè 4] à¾ÔèÁÃÐººÃÑº¤ÅÔ¡ -> àÅè¹Í¹ÔàÁªÑè¹ -> ÂéÒÂ·Õè ---
     void OnMouseDown()
     {
-        if (isPlaying) return; // �ѹ������
+        if (isPlaying) return; // ¡Ñ¹¡´àºÔéÅ
         StartCoroutine(PlayAnimThenMove());
     }
 
     IEnumerator PlayAnimThenMove()
     {
         isPlaying = true;
+
+        // ถูกต้อง — เรียกผ่าน PlayEffectManually() เท่านั้น
+        DestroyEffect destroyEffect = GetComponent<DestroyEffect>();
+        if (destroyEffect != null) destroyEffect.PlayEffectManually();
+
         if (anim != null) anim.SetTrigger("Play");
 
-        yield return new WaitForSeconds(0.66f); // ˹�ǧ�ͨ�͹��������蹨� (0.33�� / ʻմ 0.5)
+        yield return new WaitForSeconds(0.66f); // Ë¹èÇ§ÃÍ¨¹Í¹ÔàÁªÑè¹àÅè¹¨º (0.33ÇÔ / Ê»Õ´ 0.5)
 
-        MoveToRandomPosition(); // ���¡��ѧ��ѹ���·������ͧ�س
+        MoveToRandomPosition(); // àÃÕÂ¡ãªé¿Ñ§¡ìªÑ¹ÂéÒÂ·Õèà´ÔÁ¢Í§¤Ø³
         isPlaying = false;
     }
 
-    // �ѧ��ѹ����ͧ�س 100% ������е�ͧ��Ѻ
+    // ¿Ñ§¡ìªÑ¹à´ÔÁ¢Í§¤Ø³ 100% äÁèä´éáµÐµéÍ§¤ÃÑº
     public void MoveToRandomPosition()
     {
         timer = moveInterval;
@@ -67,4 +72,6 @@ public class HoopController : MonoBehaviour
         worldPosition.z = 0f;
         transform.position = worldPosition;
     }
+
+   
 }

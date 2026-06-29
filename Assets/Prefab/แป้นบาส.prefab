@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4498538160760699842}
   - component: {fileID: -409072226687728565}
   - component: {fileID: 1996795539040612442}
+  - component: {fileID: 5162210473000299343}
   m_Layer: 0
   m_Name: "\u0E41\u0E1B\u0E49\u0E19\u0E1A\u0E32\u0E2A"
   m_TagString: Hoop
@@ -172,3 +173,18 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &5162210473000299343
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4036814465590150884}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7295d653025c406408589aa553177ef4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  floatUpDistance: 1.5
+  effectDuration: 0.4
+  punchScale: 1.4

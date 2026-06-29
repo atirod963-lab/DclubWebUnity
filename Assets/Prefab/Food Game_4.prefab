@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: -7294204840576200632}
   - component: {fileID: -4541591580111820814}
   - component: {fileID: 8623835092583742024}
+  - component: {fileID: -192132850772772824}
   m_Layer: 0
   m_Name: Food Game_4
   m_TagString: Junk Food
@@ -175,3 +176,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3163f9732c5236049be5ca10d7e9c7a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &-192132850772772824
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7389922617202416898}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7295d653025c406408589aa553177ef4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  floatUpDistance: 1.5
+  effectDuration: 0.4
+  punchScale: 1.4

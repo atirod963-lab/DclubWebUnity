@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3931252294484434594}
   - component: {fileID: -1253111742749517278}
   - component: {fileID: 2250250225767661532}
+  - component: {fileID: -1152164899824077258}
   m_Layer: 0
   m_Name: Food Game_2
   m_TagString: Healthy Food
@@ -175,3 +176,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3163f9732c5236049be5ca10d7e9c7a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &-1152164899824077258
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2650655968700104551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7295d653025c406408589aa553177ef4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  floatUpDistance: 1.5
+  effectDuration: 0.4
+  punchScale: 1.4

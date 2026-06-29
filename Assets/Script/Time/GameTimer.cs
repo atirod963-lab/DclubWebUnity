@@ -51,8 +51,11 @@ public class GameTimer : MonoBehaviour
 
     void OnTimerFinished()
     {
-        SoundManager.Instance?.PlaySFX(SFXId.GameOver);
+        Debug.Log("OnTimerFinished called");
+        Debug.Log("GameSceneManager.Instance = " + GameSceneManager.Instance);
+        Debug.Log("sceneToLoad = " + (string.IsNullOrEmpty(nextSceneName) ? "SummaryScene" : nextSceneName));
 
+        SoundManager.Instance?.PlaySFX(SFXId.GameOver);
         if (TouchManager2D.Instance != null)
             TouchManager2D.Instance.isGameActive = false;
 
@@ -65,7 +68,7 @@ public class GameTimer : MonoBehaviour
         }
         else
         {
-            SceneManager.LoadScene(sceneToLoad);
+            GameSceneManager.Instance.LoadScene(sceneToLoad);
         }
     }
 }
