@@ -1,30 +1,28 @@
-﻿using System.Collections; // <--- [¨Ø´·Õè 1] à¾ÔèÁà¾×èÍãªéÃÐººË¹èÇ§àÇÅÒ Coroutine
-using UnityEngine;
+﻿using UnityEngine;
 
 public class HoopController : MonoBehaviour
 {
-    [Tooltip("àÇÅÒ·Õè¨ÐãËéá»é¹ºÒÊÍÂÙèº¹¨Í¡èÍ¹ÂéÒÂ (ÇÔ¹Ò·Õ)")]
+    [Tooltip("เวลาที่จะให้แป้นบาสอยู่บนจอก่อนย้าย (วินาที)")]
     public float moveInterval = 1f;
     private float timer;
 
-    [Tooltip("ÃÐÂÐ¢ÍºË¹éÒ¨Í à¾×èÍäÁèãËéá»é¹ºÒÊà¡Ô´ªÔ´¢Íº¨Íà¡Ô¹ä» (¤èÒ 0.1 ¶Ö§ 0.2 ¡ÓÅÑ§´Õ)")]
+    [Tooltip("ระยะขอบหน้าจอ เพื่อไม่ให้แป้นบาสเกิดชิดขอบจอเกินไป (ค่า 0.1 ถึง 0.2 กำลังดี)")]
     public float padding = 0.15f;
 
-    // --- [¨Ø´·Õè 2] à¾ÔèÁµÑÇá»Ãà¡çºÍ¹ÔàÁàµÍÃì áÅÐÊÇÔµªìàºÃ¡àÇÅÒ ---
-    private Animator anim;
-    private bool isPlaying = false;
+    [Header("ใส่ Prefab อนิเมชั่นที่จะทิ้งไว้ตอนโดนกด")]
+    public GameObject hitEffectPrefab;
+
+    [Header("ระยะห่างขั้นต่ำ")]
+    [Tooltip("ระยะทางขั้นต่ำที่ต้องกระโดดหนีจากจุดเดิม (ค่า 0.0 - 1.0) แนะนำ 0.3 ถึง 0.4")]
+    public float minMoveDistance = 0.35f;
 
     void Start()
     {
-        anim = GetComponent<Animator>(); // ´Ö§¤ÍÁâ¾à¹¹µì Animator ÁÒàµÃÕÂÁäÇé
         MoveToRandomPosition();
     }
 
     void Update()
     {
-        // --- [¨Ø´·Õè 3] ¶éÒ¡ÓÅÑ§àÅè¹Í¹ÔàÁªÑè¹ÍÂÙè ãËéáªèá¢ç§àÇÅÒ¹Ñº¶ÍÂËÅÑ§äÇé¡èÍ¹ ---
-        if (isPlaying) return;
-
         timer -= Time.deltaTime;
 
         if (timer <= 0f)
@@ -33,38 +31,43 @@ public class HoopController : MonoBehaviour
         }
     }
 
-    // --- [¨Ø´·Õè 4] à¾ÔèÁÃÐººÃÑº¤ÅÔ¡ -> àÅè¹Í¹ÔàÁªÑè¹ -> ÂéÒÂ·Õè ---
     void OnMouseDown()
     {
-        if (isPlaying) return; // ¡Ñ¹¡´àºÔéÅ
-        StartCoroutine(PlayAnimThenMove());
+        if (hitEffectPrefab != null)
+        {
+            Instantiate(hitEffectPrefab, transform.position, Quaternion.identity);
+        }
+
+        MoveToRandomPosition();
     }
 
-    IEnumerator PlayAnimThenMove()
-    {
-        isPlaying = true;
-
-        // ถูกต้อง — เรียกผ่าน PlayEffectManually() เท่านั้น
-        DestroyEffect destroyEffect = GetComponent<DestroyEffect>();
-        if (destroyEffect != null) destroyEffect.PlayEffectManually();
-
-        if (anim != null) anim.SetTrigger("Play");
-
-        yield return new WaitForSeconds(0.66f); // Ë¹èÇ§ÃÍ¨¹Í¹ÔàÁªÑè¹àÅè¹¨º (0.33ÇÔ / Ê»Õ´ 0.5)
-
-        MoveToRandomPosition(); // àÃÕÂ¡ãªé¿Ñ§¡ìªÑ¹ÂéÒÂ·Õèà´ÔÁ¢Í§¤Ø³
-        isPlaying = false;
-    }
-
-    // ¿Ñ§¡ìªÑ¹à´ÔÁ¢Í§¤Ø³ 100% äÁèä´éáµÐµéÍ§¤ÃÑº
     public void MoveToRandomPosition()
     {
         timer = moveInterval;
 
-        float randomX = Random.Range(padding, 1f - padding);
-        float randomY = Random.Range(padding, 1f - padding);
-
         float distanceToCamera = Mathf.Abs(Camera.main.transform.position.z);
+
+        // ดึงตำแหน่งปัจจุบันบนหน้าจอออกมาเทียบก่อน
+        Vector3 currentViewportPos = Camera.main.WorldToViewportPoint(transform.position);
+
+        float randomX = 0f;
+        float randomY = 0f;
+        float dist = 0f;
+        int attempts = 0; // ตัวนับรอบป้องกันลูปค้าง
+
+        // 🛡️ ระบบสุ่มวนซ้ำ: สุ่มตำแหน่งไปเรื่อยๆ จนกว่าระยะห่างจะมากกว่า minMoveDistance
+        do
+        {
+            randomX = Random.Range(padding, 1f - padding);
+            randomY = Random.Range(padding, 1f - padding);
+
+            // วัดระยะห่างระหว่างจุดเดิม กับจุดที่เพิ่งสุ่มได้
+            dist = Vector2.Distance(new Vector2(currentViewportPos.x, currentViewportPos.y), new Vector2(randomX, randomY));
+
+            attempts++;
+
+        } while (dist < minMoveDistance && attempts < 50);
+        // เช็ค attempts < 50 เผื่อกรณีจอมันแคบมาก แล้วสุ่มหาที่ลงไม่ได้ เกมจะได้ไม่ค้าง
 
         Vector3 viewportPosition = new Vector3(randomX, randomY, distanceToCamera);
         Vector3 worldPosition = Camera.main.ViewportToWorldPoint(viewportPosition);
@@ -72,6 +75,4 @@ public class HoopController : MonoBehaviour
         worldPosition.z = 0f;
         transform.position = worldPosition;
     }
-
-   
 }
