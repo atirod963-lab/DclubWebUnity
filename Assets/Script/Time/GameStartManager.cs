@@ -29,34 +29,29 @@ public class GameStartManager : MonoBehaviour
         if (TouchManager2D.Instance != null)
             TouchManager2D.Instance.isGameActive = false;
 
+        // ปิดการทำงานของระบบเครือข่ายไว้ก่อนตอนนับถอยหลัง
+        if (GameManager.Instance != null)
+            GameManager.Instance.isGameActive = false;
+
         Time.timeScale = 0f;
         StopAllCoroutines();
 
-
         if (tutorialPanel != null)
         {
-
             if (countdownText != null) countdownText.gameObject.SetActive(false);
-
             tutorialPanel.SetActive(true);
-
             StartCoroutine(WaitAndHideTutorial());
         }
         else
         {
-
             StartCoroutine(StartCountdownRoutine());
         }
     }
 
-
     IEnumerator WaitAndHideTutorial()
     {
         yield return new WaitForSecondsRealtime(tutorialDisplayTime);
-
         if (tutorialPanel != null) tutorialPanel.SetActive(false);
-
-
         StartCoroutine(StartCountdownRoutine());
     }
 
@@ -92,11 +87,18 @@ public class GameStartManager : MonoBehaviour
 
         Time.timeScale = 1f;
 
+        // -------------------------------------------------------------
+        // สั่งเปิดระบบของเกมแต่ละแบบ (มีอันไหน ก็เปิดอันนั้น ไม่ Error ตีกัน)
+        // -------------------------------------------------------------
         if (TouchManager2D.Instance != null)
             TouchManager2D.Instance.isGameActive = true;
 
+        if (TreeGameManager.Instance != null)
+            TreeGameManager.Instance.StartMiniGame();
+
         if (GameManager.Instance != null)
-            GameManager.Instance.StartMiniGame();
+            GameManager.Instance.isGameActive = true;
+        // -------------------------------------------------------------
 
         GameTimer timer = FindObjectOfType<GameTimer>();
         if (timer != null)

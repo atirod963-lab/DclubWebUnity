@@ -2047,7 +2047,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &1991072525
 Transform:
@@ -2073,22 +2073,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 1991072523}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf08306e92c4f4046985105ffd97d7ac, type: 3}
+  m_Script: {fileID: 11500000, guid: 19d517036702ec04e845ace9041422b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   playerSpriteRenderer: {fileID: 1414385213}
-  idleSprite: {fileID: 128285102, guid: 0f1eccd85d6669c459191870f421a5e6, type: 3}
-  plantingSprite: {fileID: -1754071503, guid: c85088ed2d200704886106007d7d4ad3, type: 3}
+  idleSprite: {fileID: 0}
+  plantingSprite: {fileID: 0}
   groundTransform: {fileID: 1131409508}
   moveSpeed: 5
   moveDuration: 0.2
   treePrefab: {fileID: 4294533881989299944, guid: be54e9bedc235c5418415ce5fa1617ef, type: 3}
-  treeSpawnPoint: {fileID: 1503277489}
+  treeSpawnPoint: {fileID: 0}
   minTreeDistance: 0.5
   randomOffsetRange: {x: 0.2, y: 0.1}
   targetScore: 999
-  floatingTextPrefab: {fileID: 2052336076057765544, guid: e41cee63dbeb25140bdd5f628089d106, type: 3}
-  canvas: {fileID: 732172350}
+  floatingTextPrefab: {fileID: 0}
+  canvas: {fileID: 0}
 --- !u!1001 &8233486408338258303
 PrefabInstance:
   m_ObjectHideFlags: 0

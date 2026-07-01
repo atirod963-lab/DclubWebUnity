@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class GameManager : MonoBehaviour
+// เปลี่ยนชื่อคลาสเป็น TreeGameManager ไม่ให้ซ้ำกับของเก่า
+public class TreeGameManager : MonoBehaviour
 {
-    public static GameManager Instance;
+    public static TreeGameManager Instance;
 
     [Header("Player Visuals")]
     public SpriteRenderer playerSpriteRenderer;
@@ -19,15 +20,12 @@ public class GameManager : MonoBehaviour
     public GameObject treePrefab;
     public Transform treeSpawnPoint;
 
-    // ================= [เพิ่มส่วนควบคุมระยะห่างต้นไม้] =================
     [Tooltip("ระยะห่างขั้นต่ำระหว่างต้นไม้แต่ละต้น")]
     public float minTreeDistance = 0.5f;
-
-    [Tooltip("ช่วงราคาการสุ่มเยื้องตำแหน่ง (แกน X และ Y) เพื่อความสุ่มเป็นธรรมชาติ")]
+    [Tooltip("ช่วงราคาการสุ่มเยื้องตำแหน่ง")]
     public Vector2 randomOffsetRange = new Vector2(0.2f, 0.1f);
 
     private Vector3 lastTreeLocalPosition = new Vector3(999f, 999f, 999f);
-    // =============================================================
 
     [Header("Game Settings")]
     public int targetScore = 100;
@@ -48,24 +46,15 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         currentScore = 0;
-        if (groundTransform != null)
-        {
-            targetGroundPos = groundTransform.position;
-        }
-
-        if (playerSpriteRenderer != null && idleSprite != null)
-        {
-            playerSpriteRenderer.sprite = idleSprite;
-        }
+        if (groundTransform != null) targetGroundPos = groundTransform.position;
+        if (playerSpriteRenderer != null && idleSprite != null) playerSpriteRenderer.sprite = idleSprite;
     }
 
     void Update()
     {
-        if (!isGameActive)
-            return;
+        if (!isGameActive) return;
 
-        if (Input.GetMouseButtonDown(0) ||
-            (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began))
+        if (Input.GetMouseButtonDown(0) || (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began))
         {
             AddScore();
         }
@@ -90,21 +79,12 @@ public class GameManager : MonoBehaviour
         }
 
         currentScore++;
-
-        // 1. เปลี่ยน Sprite ตัวละครเป็นท่าปลูก
         StartCoroutine(PlantingAnimationRoutine());
-
-        // 2. เรียกฟังก์ชั่นสร้างต้นไม้ (ที่มีการเช็กระยะห่าง)
         SpawnTree();
 
-        // 3. สั่งให้พื้นดินคำนวณตำแหน่งถอยไปทางซ้าย
-        if (groundTransform != null)
-        {
-            targetGroundPos += new Vector3(-1.5f, 0f, 0f);
-        }
+        if (groundTransform != null) targetGroundPos += new Vector3(-1.5f, 0f, 0f);
 
         SpawnFloatingText();
-
         SoundManager.Instance?.PlaySFX(SFXId.TreePlant);
 
         if (currentScore >= targetScore)
@@ -118,27 +98,17 @@ public class GameManager : MonoBehaviour
     {
         if (treePrefab == null || treeSpawnPoint == null || groundTransform == null) return;
 
-        // 1. สุ่มเยื้องตำแหน่งตรงจุดเกิด
         float randomX = Random.Range(-randomOffsetRange.x, randomOffsetRange.x);
         float randomY = Random.Range(-randomOffsetRange.y, randomOffsetRange.y);
         Vector3 worldSpawnPos = treeSpawnPoint.position + new Vector3(randomX, randomY, 0f);
 
-        // 2. แปลงค่าพิกัดโลก (World) ให้เป็นพิกัดบนพื้นดิน (Local Space ของ groundTransform)
         Vector3 localSpawnPos = groundTransform.InverseTransformPoint(worldSpawnPos);
-
-        // 3. เช็กระยะห่างเทียบกับต้นล่าสุดบนพื้นดินชิ้นเดียวกัน
         float distanceSinceLastTree = Vector3.Distance(localSpawnPos, lastTreeLocalPosition);
 
-        // 4. ถ้าเป็นการกดครั้งแรกสุด หรือ ห่างเกินระยะขั้นต่ำ ให้สร้างต้นไม้
         if (lastTreeLocalPosition.x > 900f || distanceSinceLastTree >= minTreeDistance)
         {
-            // สร้างต้นไม้ขึ้นมาในฉาก
             GameObject newTree = Instantiate(treePrefab, worldSpawnPos, Quaternion.identity);
-
-            // ปักลงไปบนดิน ให้เลื่อนตามกัน
             newTree.transform.SetParent(groundTransform);
-
-            // บันทึกตำแหน่ง Local ไว้เช็กในครั้งต่อไป
             lastTreeLocalPosition = localSpawnPos;
             Destroy(newTree, 3f);
         }
@@ -159,11 +129,7 @@ public class GameManager : MonoBehaviour
         if (floatingTextPrefab != null && canvas != null)
         {
             Vector3 inputPosition = Input.mousePosition;
-
-            if (Input.touchCount > 0)
-            {
-                inputPosition = Input.GetTouch(0).position;
-            }
+            if (Input.touchCount > 0) inputPosition = Input.GetTouch(0).position;
 
             GameObject textObj = Instantiate(floatingTextPrefab, canvas.transform);
             textObj.transform.position = inputPosition;
