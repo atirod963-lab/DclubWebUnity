@@ -281,8 +281,33 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7589002465228761651, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 187121537}
   m_SourcePrefab: {fileID: 100100000, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
+--- !u!1 &187121536 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7589002465228761651, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
+  m_PrefabInstance: {fileID: 187121535}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &187121537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 187121536}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e788c3d6a198f14b93d98c16f062737, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerViewPanel: {fileID: 1484044796}
+  hostViewPanel: {fileID: 844695732}
+  greenScoreText: {fileID: 844695731}
+  redScoreText: {fileID: 844695730}
+  isGameActive: 1
 --- !u!1 &376703422
 GameObject:
   m_ObjectHideFlags: 0

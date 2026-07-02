@@ -835,8 +835,7 @@ PrefabInstance:
       propertyPath: m_Name
       value: GameManager_Obj
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 634797403609904248, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -858,9 +857,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 654118806}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf08306e92c4f4046985105ffd97d7ac, type: 3}
+  m_Script: {fileID: 11500000, guid: 4e788c3d6a198f14b93d98c16f062737, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerViewPanel: {fileID: 1303816249}
+  hostViewPanel: {fileID: 538714984}
+  greenScoreText: {fileID: 538714983}
+  redScoreText: {fileID: 538714982}
+  isGameActive: 1
 --- !u!1 &831499673
 GameObject:
   m_ObjectHideFlags: 0
@@ -1710,6 +1714,14 @@ PrefabInstance:
     - target: {fileID: 4036814465590150884, guid: c962459224fa79844aa3ee25b6534e74, type: 3}
       propertyPath: m_Name
       value: "\u0E41\u0E1B\u0E49\u0E19\u0E1A\u0E32\u0E2A"
+      objectReference: {fileID: 0}
+    - target: {fileID: 4036814465590150884, guid: c962459224fa79844aa3ee25b6534e74, type: 3}
+      propertyPath: m_TagString
+      value: Hoop
+      objectReference: {fileID: 0}
+    - target: {fileID: 4498538160760699842, guid: c962459224fa79844aa3ee25b6534e74, type: 3}
+      propertyPath: hitEffectPrefab
+      value: 
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

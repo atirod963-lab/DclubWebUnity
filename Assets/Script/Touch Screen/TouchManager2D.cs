@@ -142,6 +142,7 @@ public class TouchManager2D : MonoBehaviour
                     SoundManager.Instance?.PlaySFX(SFXId.CorrectTap);
                     Destroy(hitCollider.gameObject);
                 }
+                Debug.Log("บวกคะแนน");
             }
             else if (hitCollider.CompareTag("Junk Food"))
             {
