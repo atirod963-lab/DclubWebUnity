@@ -827,37 +827,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: GameManager_Obj
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 634797403609904248, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 7589002465228761651, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 654118807}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
---- !u!1 &654118806 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7589002465228761651, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
-  m_PrefabInstance: {fileID: 654118805}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &654118807
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 654118806}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf08306e92c4f4046985105ffd97d7ac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playerViewPanel: {fileID: 0}
-  hostViewPanel: {fileID: 0}
-  greenScoreText: {fileID: 0}
-  redScoreText: {fileID: 0}
-  isGameActive: 1
 --- !u!1 &831499673
 GameObject:
   m_ObjectHideFlags: 0
