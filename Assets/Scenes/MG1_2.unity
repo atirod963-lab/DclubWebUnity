@@ -710,6 +710,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3239336256432780704, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -1011454480, guid: 97780738763635e41ae5a4448c20b653, type: 3}
     - target: {fileID: 4037577054119395233, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
       propertyPath: m_Name
       value: Host_V 1
@@ -783,6 +787,10 @@ PrefabInstance:
       propertyPath: sceneViewId
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1395980993586818360, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
+      propertyPath: ObservedComponentsFoldoutOpen
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2820624556209188119, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
       propertyPath: m_LocalPosition.x
       value: 153.5
@@ -853,11 +861,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf08306e92c4f4046985105ffd97d7ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerViewPanel: {fileID: 0}
-  hostViewPanel: {fileID: 0}
-  greenScoreText: {fileID: 0}
-  redScoreText: {fileID: 0}
-  isGameActive: 1
 --- !u!1 &831499673
 GameObject:
   m_ObjectHideFlags: 0
