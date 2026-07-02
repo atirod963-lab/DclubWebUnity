@@ -2244,13 +2244,37 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -84
       objectReference: {fileID: 0}
+    - target: {fileID: 3579852416838249404, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4037577054119395233, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
       propertyPath: m_Name
       value: Host_V
       objectReference: {fileID: 0}
+    - target: {fileID: 4120343717756043285, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_fontSize
+      value: 36
+      objectReference: {fileID: 0}
+    - target: {fileID: 4120343717756043285, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4470135286634257611, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
       propertyPath: m_CullTransparentMesh
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4832813035022033198, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9014340026736755746, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_fontSize
+      value: 36
+      objectReference: {fileID: 0}
+    - target: {fileID: 9014340026736755746, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

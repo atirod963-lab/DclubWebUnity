@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using Photon.Pun;
 
-// เปลี่ยนชื่อคลาสเป็น TreeGameManager ไม่ให้ซ้ำกับของเก่า
 public class TreeGameManager : MonoBehaviour
 {
     public static TreeGameManager Instance;
@@ -54,6 +54,16 @@ public class TreeGameManager : MonoBehaviour
     {
         if (!isGameActive) return;
 
+        // ---------------------------------------------------------
+        // [เพิ่มใหม่] ล็อคไม่ให้ Host (Spectator) กดปลูกต้นไม้ได้
+        // ---------------------------------------------------------
+        if (PhotonNetwork.InRoom && PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Role"))
+        {
+            string role = (string)PhotonNetwork.LocalPlayer.CustomProperties["Role"];
+            if (role == "Spectator") return; // หยุดการทำงานทันทีถ้าเป็นโฮสต์
+        }
+        // ---------------------------------------------------------
+
         if (Input.GetMouseButtonDown(0) || (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began))
         {
             AddScore();
@@ -72,11 +82,21 @@ public class TreeGameManager : MonoBehaviour
 
     void AddScore()
     {
+        // 1. บวกคะแนนในเครื่องผู้เล่น
         if (TouchManager2D.Instance != null)
         {
             TouchManager2D.Instance.score += 1;
             TouchManager2D.Instance.UpdateScoreUI();
         }
+
+        // ---------------------------------------------------------
+        // 2. [เพิ่มใหม่] ส่งคะแนนไปบวกที่หน้าจอ Host 
+        // ---------------------------------------------------------
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.AddScoreToMyTeam();
+        }
+        // ---------------------------------------------------------
 
         currentScore++;
         StartCoroutine(PlantingAnimationRoutine());
