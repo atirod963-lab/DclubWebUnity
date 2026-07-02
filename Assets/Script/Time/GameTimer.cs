@@ -52,7 +52,7 @@ public class GameTimer : MonoBehaviour
     void OnTimerFinished()
     {
         Debug.Log("OnTimerFinished called");
-        Debug.Log("GameSceneManager.Instance = " + GameSceneManager.Instance);
+        
         Debug.Log("sceneToLoad = " + (string.IsNullOrEmpty(nextSceneName) ? "SummaryScene" : nextSceneName));
 
         SoundManager.Instance?.PlaySFX(SFXId.GameOver);
@@ -68,7 +68,7 @@ public class GameTimer : MonoBehaviour
         }
         else
         {
-            GameSceneManager.Instance.LoadScene(sceneToLoad);
+            SceneManager.LoadScene(sceneToLoad);
         }
     }
 }

@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 2943782035955621269}
   - component: {fileID: 3127444130022358872}
   - component: {fileID: 8509129492714579524}
-  - component: {fileID: 3757452835950799370}
   - component: {fileID: -908712763520179283}
   - component: {fileID: 1364905775168545006}
+  - component: {fileID: 1038466079017928083}
   m_Layer: 0
   m_Name: Food Game_0
   m_TagString: Healthy Food
@@ -31,7 +31,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 30.000004, y: 30.000004, z: 30.000004}
+  m_LocalScale: {x: 15, y: 15, z: 15}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -80,7 +80,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -298465529, guid: df952fb677c8b3c4889fe40409671e0b, type: 3}
+  m_Sprite: {fileID: -1464117989, guid: 2e6f2e13d38b2bb44b2e3950393b1a0f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -118,7 +118,34 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!61 &3757452835950799370
+--- !u!114 &-908712763520179283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5555864847541621411}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3163f9732c5236049be5ca10d7e9c7a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1364905775168545006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5555864847541621411}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7295d653025c406408589aa553177ef4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  floatUpDistance: 1.5
+  effectDuration: 0.4
+  punchScale: 1.4
+--- !u!61 &1038466079017928083
 BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -156,38 +183,11 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1.16, y: 2.6}
+    oldSize: {x: 5.04, y: 5.6}
     newSize: {x: 1.16, y: 2.6}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.44, y: 2.6}
+  m_Size: {x: 5.04, y: 5.6}
   m_EdgeRadius: 0
---- !u!114 &-908712763520179283
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5555864847541621411}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3163f9732c5236049be5ca10d7e9c7a3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1364905775168545006
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5555864847541621411}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7295d653025c406408589aa553177ef4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  floatUpDistance: 1.5
-  effectDuration: 0.4
-  punchScale: 1.4
