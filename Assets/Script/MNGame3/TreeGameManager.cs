@@ -35,7 +35,10 @@ public class TreeGameManager : MonoBehaviour
     public Canvas canvas;
 
     private int currentScore = 0;
-    private bool isGameActive = false;
+
+    [Tooltip("เปิดให้เห็นใน Inspector เพื่อช่วยเช็คสถานะการเริ่มเกม")]
+    public bool isGameActive = false;
+
     private Vector3 targetGroundPos;
 
     void Awake()
@@ -54,16 +57,6 @@ public class TreeGameManager : MonoBehaviour
     {
         if (!isGameActive) return;
 
-        // ---------------------------------------------------------
-        // [เพิ่มใหม่] ล็อคไม่ให้ Host (Spectator) กดปลูกต้นไม้ได้
-        // ---------------------------------------------------------
-        if (PhotonNetwork.InRoom && PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Role"))
-        {
-            string role = (string)PhotonNetwork.LocalPlayer.CustomProperties["Role"];
-            if (role == "Spectator") return; // หยุดการทำงานทันทีถ้าเป็นโฮสต์
-        }
-        // ---------------------------------------------------------
-
         if (Input.GetMouseButtonDown(0) || (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began))
         {
             AddScore();
@@ -80,25 +73,30 @@ public class TreeGameManager : MonoBehaviour
         isGameActive = true;
     }
 
-    void AddScore()
+    // 🔓 ปลดล็อคเป็น public แล้ว บอทเรียกใช้ได้!
+    public void AddScore()
     {
-        // 1. บวกคะแนนในเครื่องผู้เล่น
-        if (TouchManager2D.Instance != null)
+        bool isHost = false;
+        if (PhotonNetwork.InRoom && PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Role"))
         {
-            TouchManager2D.Instance.score += 1;
-            TouchManager2D.Instance.UpdateScoreUI();
+            string role = (string)PhotonNetwork.LocalPlayer.CustomProperties["Role"];
+            if (role == "Spectator") isHost = true;
         }
 
-        // ---------------------------------------------------------
-        // 2. [เพิ่มใหม่] ส่งคะแนนไปบวกที่หน้าจอ Host 
-        // ---------------------------------------------------------
-        if (GameManager.Instance != null)
+        if (!isHost)
         {
-            GameManager.Instance.AddScoreToMyTeam();
-        }
-        // ---------------------------------------------------------
+            if (TouchManager2D.Instance != null)
+            {
+                TouchManager2D.Instance.score += 1;
+                TouchManager2D.Instance.UpdateScoreUI();
+            }
 
-        currentScore++;
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.AddScoreToMyTeam();
+            }
+        }
+
         StartCoroutine(PlantingAnimationRoutine());
         SpawnTree();
 
@@ -107,10 +105,14 @@ public class TreeGameManager : MonoBehaviour
         SpawnFloatingText();
         SoundManager.Instance?.PlaySFX(SFXId.TreePlant);
 
-        if (currentScore >= targetScore)
+        if (!isHost)
         {
-            currentScore = targetScore;
-            isGameActive = false;
+            currentScore++;
+            if (currentScore >= targetScore)
+            {
+                currentScore = targetScore;
+                isGameActive = false;
+            }
         }
     }
 

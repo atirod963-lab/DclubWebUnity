@@ -82,12 +82,7 @@ public class TouchManager2D : MonoBehaviour
     {
         if (!isGameActive) return;
 
-        // ล็อคไม่ให้ Host (Spectator) กดของบนจอได้
-        if (PhotonNetwork.InRoom && PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Role"))
-        {
-            string role = (string)PhotonNetwork.LocalPlayer.CustomProperties["Role"];
-            if (role == "Spectator") return;
-        }
+        // ❌ [เอาออกแล้ว] ไม่มีการตัดมือโฮสต์ตรงนี้แล้ว โฮสต์สามารถกดจอได้เหมือนผู้เล่น!
 
         if (Input.touchCount > 0)
         {
@@ -114,28 +109,36 @@ public class TouchManager2D : MonoBehaviour
 
         if (hitCollider != null)
         {
+            // 🕵️‍♂️ [เช็คสถานะ] แอบดูว่าคนที่จิ้มคือ Host หรือเปล่า?
+            bool isHost = false;
+            if (PhotonNetwork.InRoom && PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Role"))
+            {
+                string role = (string)PhotonNetwork.LocalPlayer.CustomProperties["Role"];
+                if (role == "Spectator") isHost = true;
+            }
+
             if (hitCollider.CompareTag("Healthy Food") || hitCollider.CompareTag("Hoop") || hitCollider.CompareTag("Water"))
             {
-                score += 1;
-                UpdateScoreUI();
-
-                if (GameManager.Instance != null)
+                // 🪄 [เงื่อนไขคะแนน] ถ้า "ไม่ใช่โฮสต์" ถึงจะได้คะแนน (ถ้าเป็นโฮสต์ โค้ดตรงนี้จะถูกข้ามไป)
+                if (!isHost)
                 {
-                    GameManager.Instance.AddScoreToMyTeam();
+                    score += 1;
+                    UpdateScoreUI();
+                    if (GameManager.Instance != null) GameManager.Instance.AddScoreToMyTeam();
                 }
 
+                // 💥 แต่เอฟเฟกต์ เสียง และการทำลายวัตถุ ทำงานเหมือนเดิมสำหรับ "ทุกคน"
                 if (hitCollider.CompareTag("Hoop"))
                 {
                     SoundManager.Instance?.PlaySFX(SFXId.HoopShoot);
                     HoopController hoop = hitCollider.GetComponent<HoopController>();
                     if (hoop != null)
                     {
-                        // 🪄 เสกเอฟเฟกต์หลอกตาที่หน้าจอคนเล่นตรงจุดที่กด
                         if (hoop.hitEffectPrefab != null)
                         {
                             Instantiate(hoop.hitEffectPrefab, hitCollider.transform.position, Quaternion.identity);
                         }
-                        hoop.MoveToRandomPosition();
+                        hoop.MoveToRandomPosition(); // แป้นบาสจะวาร์ปหนี
                     }
                 }
                 else
@@ -146,12 +149,12 @@ public class TouchManager2D : MonoBehaviour
             }
             else if (hitCollider.CompareTag("Junk Food"))
             {
-                score -= 1;
-                UpdateScoreUI();
-
-                if (GameManager.Instance != null)
+                // 🪄 [เงื่อนไขคะแนน] ถ้า "ไม่ใช่โฮสต์" ถึงจะโดนหักคะแนน
+                if (!isHost)
                 {
-                    GameManager.Instance.SubtractScoreToMyTeam();
+                    score -= 1;
+                    UpdateScoreUI();
+                    if (GameManager.Instance != null) GameManager.Instance.SubtractScoreToMyTeam();
                 }
 
                 SoundManager.Instance?.PlaySFX(SFXId.WrongTap);
