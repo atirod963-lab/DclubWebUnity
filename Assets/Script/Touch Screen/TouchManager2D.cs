@@ -82,15 +82,12 @@ public class TouchManager2D : MonoBehaviour
     {
         if (!isGameActive) return;
 
-        // ---------------------------------------------------------
-        // [ส่วนที่เพิ่มใหม่] ล็อคไม่ให้ Host (Spectator) กดของบนจอได้
-        // ---------------------------------------------------------
+        // ล็อคไม่ให้ Host (Spectator) กดของบนจอได้
         if (PhotonNetwork.InRoom && PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Role"))
         {
             string role = (string)PhotonNetwork.LocalPlayer.CustomProperties["Role"];
-            if (role == "Spectator") return; // หยุดการทำงานทันทีถ้าเป็นโฮสต์
+            if (role == "Spectator") return;
         }
-        // ---------------------------------------------------------
 
         if (Input.touchCount > 0)
         {
@@ -122,20 +119,24 @@ public class TouchManager2D : MonoBehaviour
                 score += 1;
                 UpdateScoreUI();
 
-                // ---------------------------------------------------------
-                // [ส่วนที่เพิ่มใหม่] ส่งคะแนนไปบวกที่หน้าจอ Host 
-                // ---------------------------------------------------------
                 if (GameManager.Instance != null)
                 {
                     GameManager.Instance.AddScoreToMyTeam();
                 }
-                // ---------------------------------------------------------
 
                 if (hitCollider.CompareTag("Hoop"))
                 {
                     SoundManager.Instance?.PlaySFX(SFXId.HoopShoot);
                     HoopController hoop = hitCollider.GetComponent<HoopController>();
-                    if (hoop != null) hoop.MoveToRandomPosition();
+                    if (hoop != null)
+                    {
+                        // 🪄 เสกเอฟเฟกต์หลอกตาที่หน้าจอคนเล่นตรงจุดที่กด
+                        if (hoop.hitEffectPrefab != null)
+                        {
+                            Instantiate(hoop.hitEffectPrefab, hitCollider.transform.position, Quaternion.identity);
+                        }
+                        hoop.MoveToRandomPosition();
+                    }
                 }
                 else
                 {
@@ -148,14 +149,10 @@ public class TouchManager2D : MonoBehaviour
                 score -= 1;
                 UpdateScoreUI();
 
-                // ---------------------------------------------------------
-                // [ส่วนที่เพิ่มใหม่] ส่งคะแนนไปหักลบที่หน้าจอ Host 
-                // ---------------------------------------------------------
                 if (GameManager.Instance != null)
                 {
                     GameManager.Instance.SubtractScoreToMyTeam();
                 }
-                // ---------------------------------------------------------
 
                 SoundManager.Instance?.PlaySFX(SFXId.WrongTap);
                 Destroy(hitCollider.gameObject);
