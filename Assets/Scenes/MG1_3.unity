@@ -281,33 +281,8 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 7589002465228761651, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 187121537}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
---- !u!1 &187121536 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7589002465228761651, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
-  m_PrefabInstance: {fileID: 187121535}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &187121537
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 187121536}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e788c3d6a198f14b93d98c16f062737, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playerViewPanel: {fileID: 1484044796}
-  hostViewPanel: {fileID: 844695732}
-  greenScoreText: {fileID: 844695731}
-  redScoreText: {fileID: 844695730}
-  isGameActive: 1
 --- !u!1 &376703422
 GameObject:
   m_ObjectHideFlags: 0
@@ -2407,7 +2382,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -44.78595, y: -50.10089}
+  m_AnchoredPosition: {x: -47.1, y: -50.10089}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1688388285
@@ -2432,8 +2407,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Time
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 370b05e802d45e34db4455ba1d2e2ec2, type: 2}
-  m_sharedMaterial: {fileID: -6264395228375266307, guid: 370b05e802d45e34db4455ba1d2e2ec2, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: d8644034854e6f640aea61fce8eb334a, type: 2}
+  m_sharedMaterial: {fileID: -4278498419429021872, guid: d8644034854e6f640aea61fce8eb334a, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
