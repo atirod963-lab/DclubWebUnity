@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.UI; // ต้องมีบรรทัดนี้เพื่อใช้ Button และ Image
 using Photon.Pun;
 using Photon.Realtime;
@@ -12,8 +13,12 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
     public TextMeshProUGUI p1ScoreText;
     public TextMeshProUGUI p2ScoreText;
 
-    [Header("Social & Profile (เพิ่มใหม่)")]
-    public Image winnerAvatarDisplay; // ลากช่องโชว์รูปคนชนะมาใส่
+    [Header("Social & Profile")]
+    public Image winnerAvatarDisplay; // ช่องโชว์รูปคนชนะ
+    // ---------------------------------------------------------
+    // 🖼️ [เพิ่มใหม่] ช่องสำหรับลากกรอบโชว์รูปคนแพ้มาใส่
+    public Image loserAvatarDisplay;
+    // ---------------------------------------------------------
     public Sprite[] avatarSprites;    // ลากรูปเซ็ตเดิม เรียงให้ตรงกับหน้า Lobby
     public Button facebookShareButton;
     public string gameURL = "https://pongsatornthn-art.github.io/DClub-Multiplayer-Web01/";
@@ -23,7 +28,10 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
 
     void Start()
     {
+        // ซ่อนกรอบรูปไว้ก่อนตอนเริ่มซีนเพื่อความชื่นมื่น เผื่อเกิดข้อผิดพลาดจะได้ไม่ขึ้นกรอบขาว
         if (winnerAvatarDisplay != null) winnerAvatarDisplay.gameObject.SetActive(false);
+        if (loserAvatarDisplay != null) loserAvatarDisplay.gameObject.SetActive(false);
+
         if (facebookShareButton != null) facebookShareButton.onClick.AddListener(ShareToFacebook);
 
         ShowFinalResults();
@@ -31,6 +39,7 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
 
     void ShowFinalResults()
     {
+        // จัดเรียงรายชื่อผู้เล่นตามคะแนนจากมากไปน้อย (index 0 คือที่ 1 / index 1 คือที่ 2)
         var players = PhotonNetwork.PlayerList
             .OrderByDescending(p => GetScore(p)).ToList();
 
@@ -39,27 +48,47 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
         if (players.Count >= 2)
             p2ScoreText.text = $"{players[1].NickName}: {GetScore(players[1])} pts";
 
+        // กรณีที่ 1: คะแนนเสมอกัน
         if (players.Count > 1 && GetScore(players[0]) == GetScore(players[1]))
         {
             winnerNameText.text = "🏆 เสมอกัน! 🏆";
             topWinnerName = "เสมอ";
             topScore = GetScore(players[0]);
+
+            // ถ้าเสมอกัน ให้โชว์รูปทั้งคู่ในกรอบของตัวเองไปเลยครับ
+            SetPlayerAvatar(players[0], winnerAvatarDisplay);
+            SetPlayerAvatar(players[1], loserAvatarDisplay);
         }
+        // กรณีที่ 2: มีคนชนะชัดเจน
         else if (players.Count > 0)
         {
             winnerNameText.text = $"🏆 {players[0].NickName} WIN! 🏆";
             topWinnerName = players[0].NickName;
             topScore = GetScore(players[0]);
 
-            // ดึง ID รูปโปรไฟล์มาแสดงผล
-            if (players[0].CustomProperties.ContainsKey("AvatarID") && winnerAvatarDisplay != null)
+            // 🥇 สั่งโชว์รูปคนชนะ (คนที่ได้ที่ 1)
+            SetPlayerAvatar(players[0], winnerAvatarDisplay);
+
+            // 🥈 สั่งโชว์รูปคนแพ้ (คนที่ได้ที่ 2)
+            if (players.Count >= 2)
             {
-                int avatarID = (int)players[0].CustomProperties["AvatarID"];
-                if (avatarID >= 0 && avatarID < avatarSprites.Length)
-                {
-                    winnerAvatarDisplay.sprite = avatarSprites[avatarID];
-                    winnerAvatarDisplay.gameObject.SetActive(true);
-                }
+                SetPlayerAvatar(players[1], loserAvatarDisplay);
+            }
+        }
+    }
+
+    // 🛠️ ฟังก์ชันตัวช่วยดึงรูปอวาตาร์มาใส่กรอบอ้างอิงตาม Custom Properties
+    void SetPlayerAvatar(Player player, Image targetImage)
+    {
+        if (targetImage == null) return;
+
+        if (player.CustomProperties.ContainsKey("Avatar"))
+        {
+            int avatarID = (int)player.CustomProperties["Avatar"];
+            if (avatarID >= 0 && avatarID < avatarSprites.Length)
+            {
+                targetImage.sprite = avatarSprites[avatarID];
+                targetImage.gameObject.SetActive(true); //เปิดการแสดงผลรูปภาพ
             }
         }
     }
