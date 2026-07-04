@@ -10,14 +10,8 @@ public class GameManager : MonoBehaviourPunCallbacks
     public static GameManager Instance;
 
     [Header("Game Mode Settings")]
-    [Tooltip("ติ๊กถูกถ้าฉากนี้เป็นเกมบาส (ของจะสุ่มโผล่บนจอแทนการร่วงจากฟ้า)")]
     public bool isBasketballMode = false;
-
-    // ---------------------------------------------------------
-    // ⏱️ [เพิ่มใหม่] ช่องปรับความเร็วของร่วง
-    [Tooltip("เวลาที่ใช้ร่วงจากฟ้า (วินาที) ยิ่งเลขเยอะ ยิ่งตกช้า")]
     public float foodFallDuration = 0.8f;
-    // ---------------------------------------------------------
 
     [Header("UI Views")]
     public GameObject playerViewPanel;
@@ -63,8 +57,19 @@ public class GameManager : MonoBehaviourPunCallbacks
             }
         }
 
-        if (!PhotonNetwork.InRoom) return;
+        // ---------------------------------------------------------
+        // 🛠️ [แก้ไขใหม่] เช็คว่าเป็นโหมด Singleplayer หรือ Multiplayer
+        // ---------------------------------------------------------
+        if (!PhotonNetwork.InRoom)
+        {
+            // 👤 ถ้าไม่ได้อยู่ในห้อง = เล่นโหมด Singleplayer
+            isHost = false;
+            if (playerViewPanel != null) playerViewPanel.SetActive(true);   // เปิดจอผู้เล่น
+            if (hostViewPanel != null) hostViewPanel.SetActive(false);      // ปิดจอโฮสต์
+            return; // จบการทำงานแค่นี้ ไม่ต้องดึงค่าออนไลน์
+        }
 
+        // 🌐 ถ้าอยู่ในห้อง = เล่นโหมด Multiplayer
         if (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Role"))
         {
             string role = (string)PhotonNetwork.LocalPlayer.CustomProperties["Role"];
@@ -85,7 +90,16 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public void AddScoreToMyTeam()
     {
-        if (!isGameActive || !PhotonNetwork.InRoom) return;
+        if (!isGameActive) return;
+
+        // ถ้าเล่นโหมด Singleplayer (ไม่ได้ต่อเน็ต) ให้บวกคะแนนธรรมดาเลย
+        if (!PhotonNetwork.InRoom)
+        {
+            // สมมติให้เล่นเป็นสีเขียวใน Singleplayer (หรือจะเพิ่ม UI ให้คะแนนขึ้นแยกก็ได้ครับ)
+            currentGreenScore++;
+            UpdateScoreUI();
+            return;
+        }
 
         string myTeam = "None";
         if (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Team"))
@@ -140,7 +154,14 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public void SubtractScoreToMyTeam()
     {
-        if (!isGameActive || !PhotonNetwork.InRoom) return;
+        if (!isGameActive) return;
+
+        if (!PhotonNetwork.InRoom)
+        {
+            currentGreenScore--;
+            UpdateScoreUI();
+            return;
+        }
 
         string myTeam = "None";
         if (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Team"))
@@ -246,7 +267,6 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             startY = 1000f;
             endY = Random.Range(-150f, 200f);
-            // 🚀 [ปรับปรุงใหม่] ดึงค่าเวลาจากตัวแปรด้านบนมาใช้แทนเลขตายตัว
             animDuration = foodFallDuration;
         }
 

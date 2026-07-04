@@ -44,6 +44,7 @@ public class TouchManager2D : MonoBehaviour
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        // 🚫 [เอาโค้ดรีเซ็ตออกแล้ว] ปล่อยให้คะแนนสะสมต่อไปยาวๆ ทั้ง 3 เกมตามที่ปอบอกเลยครับ!
         FindUIElements();
         UpdateScoreUI();
     }
@@ -82,8 +83,6 @@ public class TouchManager2D : MonoBehaviour
     {
         if (!isGameActive) return;
 
-        // ❌ [เอาออกแล้ว] ไม่มีการตัดมือโฮสต์ตรงนี้แล้ว โฮสต์สามารถกดจอได้เหมือนผู้เล่น!
-
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
@@ -109,7 +108,6 @@ public class TouchManager2D : MonoBehaviour
 
         if (hitCollider != null)
         {
-            // 🕵️‍♂️ [เช็คสถานะ] แอบดูว่าคนที่จิ้มคือ Host หรือเปล่า?
             bool isHost = false;
             if (PhotonNetwork.InRoom && PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Role"))
             {
@@ -119,7 +117,6 @@ public class TouchManager2D : MonoBehaviour
 
             if (hitCollider.CompareTag("Healthy Food") || hitCollider.CompareTag("Hoop") || hitCollider.CompareTag("Water"))
             {
-                // 🪄 [เงื่อนไขคะแนน] ถ้า "ไม่ใช่โฮสต์" ถึงจะได้คะแนน (ถ้าเป็นโฮสต์ โค้ดตรงนี้จะถูกข้ามไป)
                 if (!isHost)
                 {
                     score += 1;
@@ -127,7 +124,6 @@ public class TouchManager2D : MonoBehaviour
                     if (GameManager.Instance != null) GameManager.Instance.AddScoreToMyTeam();
                 }
 
-                // 💥 แต่เอฟเฟกต์ เสียง และการทำลายวัตถุ ทำงานเหมือนเดิมสำหรับ "ทุกคน"
                 if (hitCollider.CompareTag("Hoop"))
                 {
                     SoundManager.Instance?.PlaySFX(SFXId.HoopShoot);
@@ -138,7 +134,7 @@ public class TouchManager2D : MonoBehaviour
                         {
                             Instantiate(hoop.hitEffectPrefab, hitCollider.transform.position, Quaternion.identity);
                         }
-                        hoop.MoveToRandomPosition(); // แป้นบาสจะวาร์ปหนี
+                        hoop.MoveToRandomPosition();
                     }
                 }
                 else
@@ -149,7 +145,6 @@ public class TouchManager2D : MonoBehaviour
             }
             else if (hitCollider.CompareTag("Junk Food"))
             {
-                // 🪄 [เงื่อนไขคะแนน] ถ้า "ไม่ใช่โฮสต์" ถึงจะโดนหักคะแนน
                 if (!isHost)
                 {
                     score -= 1;
@@ -165,6 +160,12 @@ public class TouchManager2D : MonoBehaviour
 
     public void UpdateScoreUI()
     {
+        if (scoreText == null || !scoreText.gameObject.activeInHierarchy)
+        {
+            GameObject sObj = GameObject.Find(scoreTextName);
+            if (sObj != null) scoreText = sObj.GetComponent<TextMeshProUGUI>();
+        }
+
         if (scoreText != null)
             scoreText.text = "Score: " + score;
 
