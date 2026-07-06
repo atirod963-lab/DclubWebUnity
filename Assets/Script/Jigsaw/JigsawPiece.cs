@@ -33,6 +33,9 @@ public class JigsawPiece : MonoBehaviourPun, IPunOwnershipCallbacks
     private JigsawGameManager gameManager;
     private int originalSortingOrder;
 
+    // เพิ่มตัวแปร Static เพื่อล็อกไม่ให้หยิบหลายชิ้นพร้อมกัน
+    public static JigsawPiece currentlyDraggingPiece = null;
+
     void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
@@ -63,33 +66,21 @@ public class JigsawPiece : MonoBehaviourPun, IPunOwnershipCallbacks
 
     void Update()
     {
-        // =================================================================
-        // 🔥 [เซรุ่มสารภาพความจริง] วางไว้บรรทัดแรกสุดของ Update! ห้ามมี return ขวางหน้า
-        // =================================================================
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (mainCam == null) mainCam = Camera.main;
-            Vector2 mouseWorld = mainCam.ScreenToWorldPoint(Input.mousePosition);
-            BoxCollider2D col = GetComponent<BoxCollider2D>();
-            bool isHit = col != null && col.OverlapPoint(mouseWorld);
-
-            // สั่งจิ๊กซอว์ทุกชิ้นแหกปากรายงานตัวออกมาพร้อมกัน!
-            Debug.Log($"<color=cyan>🔍 [REPORT ชิ้น {pieceIndex}]</color> " +
-                      $"isPlaced=<b>{isPlaced}</b> | " +
-                      $"พิกัดเมาส์={mouseWorld.x:F1}, {mouseWorld.y:F1} | " +
-                      $"ผล HitTest: <b>{(isHit ? "<color=green>โดน!</color>" : "<color=red>วืด!</color>")}</b>");
-        }
-
-        // -----------------------------------------------------------------
-        // ชุดคำสั่ง Drag & Drop ดั้งเดิม (ย้ายมาหลบอยู่ใต้เซรุ่มข้างบน)
         if (isPlaced) return;
-        if (mainCam == null) return;
+        if (mainCam == null) mainCam = Camera.main;
+
+        // ถ้ามีการลากชิ้นอื่นอยู่ ห้ามชิ้นนี้ทำงาน
+        if (currentlyDraggingPiece != null && currentlyDraggingPiece != this) return;
 
         Vector2 currentMouse = mainCam.ScreenToWorldPoint(Input.mousePosition);
 
         if (Input.GetMouseButtonDown(0))
         {
-            if (HitTest(Input.mousePosition)) TryGrab(currentMouse);
+            // เช็คว่าเป็นชิ้นบนสุดไหมก่อนเริ่มลาก
+            if (IsTopPieceAt(Input.mousePosition))
+            {
+                TryGrab(currentMouse);
+            }
         }
         else if (Input.GetMouseButton(0))
         {
@@ -101,10 +92,27 @@ public class JigsawPiece : MonoBehaviourPun, IPunOwnershipCallbacks
         }
     }
 
-    bool HitTest(Vector2 screenPos)
+    bool IsTopPieceAt(Vector2 screenPos)
     {
-        Vector2 world = mainCam.ScreenToWorldPoint(screenPos);
-        return GetComponent<Collider2D>().OverlapPoint(world);
+        Vector2 worldPos = mainCam.ScreenToWorldPoint(screenPos);
+        Collider2D[] hits = Physics2D.OverlapPointAll(worldPos);
+
+        JigsawPiece topPiece = null;
+        int highestOrder = -1;
+
+        foreach (var hit in hits)
+        {
+            JigsawPiece p = hit.GetComponent<JigsawPiece>();
+            if (p != null && !p.isPlaced)
+            {
+                if (p.sr.sortingOrder > highestOrder)
+                {
+                    highestOrder = p.sr.sortingOrder;
+                    topPiece = p;
+                }
+            }
+        }
+        return topPiece == this;
     }
 
     void TryGrab(Vector2 inputWorldPos)
@@ -120,26 +128,15 @@ public class JigsawPiece : MonoBehaviourPun, IPunOwnershipCallbacks
     void StartDragging()
     {
         isDragging = true;
+        currentlyDraggingPiece = this;
         sr.sortingOrder = 999;
         photonView.RPC("RPC_GrabPiece", RpcTarget.All, PhotonNetwork.LocalPlayer.ActorNumber);
     }
 
-    public void OnOwnershipRequest(PhotonView targetView, Player requestingPlayer)
-    {
-        if (targetView == photonView) targetView.TransferOwnership(requestingPlayer);
-    }
-
-    public void OnOwnershipTransfered(PhotonView targetView, Player previousOwner)
-    {
-        if (targetView != photonView || !photonView.IsMine) return;
-        StartDragging();
-    }
-
-    public void OnOwnershipTransferFailed(PhotonView targetView, Player senderOfFailedRequest) { }
-
     void TrySnap()
     {
         isDragging = false;
+        currentlyDraggingPiece = null;
         sr.sortingOrder = originalSortingOrder;
 
         float dist = Vector2.Distance(transform.position, targetPosition);
@@ -147,10 +144,25 @@ public class JigsawPiece : MonoBehaviourPun, IPunOwnershipCallbacks
         else photonView.RPC("RPC_ReleasePiece", RpcTarget.All);
     }
 
+    // --- Implement IPunOwnershipCallbacks ---
+    public void OnOwnershipRequest(PhotonView targetView, Player requestingPlayer)
+    {
+        if (targetView == photonView) targetView.TransferOwnership(requestingPlayer);
+    }
+
+    public void OnOwnershipTransfered(PhotonView targetView, Player previousOwner)
+    {
+        if (targetView == photonView && photonView.IsMine) StartDragging();
+    }
+
+    public void OnOwnershipTransferFailed(PhotonView targetView, Player senderOfFailedRequest) { }
+
+    // --- RPCs ---
     [PunRPC] void RPC_GrabPiece(int actorNumber) { isGrabbed = true; sr.color = (actorNumber == PhotonNetwork.LocalPlayer.ActorNumber) ? defaultColor : teamRedColor; }
     [PunRPC] void RPC_ReleasePiece() { isGrabbed = false; StartCoroutine(MoveToOrigin(originalPosition)); }
     [PunRPC] void RPC_ForceResetPiece() { isGrabbed = false; StartCoroutine(MoveToOrigin(originalPosition)); }
-    [PunRPC] void RPC_PlacePiece() { isPlaced = true; isGrabbed = false; transform.position = targetPosition; if (GetComponent<Collider2D>() != null) GetComponent<Collider2D>().enabled = false; sr.color = defaultColor; if (photonView.IsMine && gameManager != null) gameManager.OnPiecePlaced(); }
+    [PunRPC] void RPC_PlacePiece() { isPlaced = true; isGrabbed = false; transform.position = targetPosition; 
+        if (GetComponent<Collider2D>() != null) GetComponent<Collider2D>().enabled = false; sr.color = defaultColor; if (photonView.IsMine && gameManager != null) gameManager.OnPiecePlaced(); }
 
     IEnumerator MoveToOrigin(Vector2 target)
     {
