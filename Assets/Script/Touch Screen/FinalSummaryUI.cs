@@ -5,7 +5,7 @@ using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
 using System.Linq;
-using System.Runtime.InteropServices; // 🌟 [เพิ่มใหม่] เพื่อให้คุยกับไฟล์ .jslib ได้
+using System.Runtime.InteropServices;
 
 public class FinalSummaryUI : MonoBehaviourPunCallbacks
 {
@@ -24,19 +24,29 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
     private string topWinnerName = "";
     private int topScore = 0;
 
-    // ---------------------------------------------------------
-    // 📸 [เพิ่มใหม่] ประกาศเรียกใช้สะพานเชื่อมกับเว็บ (jslib)
-    // ---------------------------------------------------------
     [DllImport("__Internal")]
     private static extern void DownloadScreenshotJS(byte[] byteData, int byteLength, string fileName);
 
     void Start()
     {
+        // 🔄 [อัปเกรดใหม่] ตั้งค่าตัวหนังสือตอนเริ่มฉาก เพื่อถ่วงเวลารอข้อมูล
+        if (winnerNameText != null) winnerNameText.text = "กำลังคำนวณผลลัพธ์...";
+        if (p1ScoreText != null) p1ScoreText.text = "";
+        if (p2ScoreText != null) p2ScoreText.text = "";
+
         if (winnerAvatarDisplay != null) winnerAvatarDisplay.gameObject.SetActive(false);
         if (loserAvatarDisplay != null) loserAvatarDisplay.gameObject.SetActive(false);
 
         if (facebookShareButton != null) facebookShareButton.onClick.AddListener(ShareToFacebook);
 
+        // สั่งให้เริ่มนับถอยหลังรอเน็ตซิงค์
+        StartCoroutine(WaitAndSyncBeforeResults());
+    }
+
+    // ⏳ [ฟังก์ชันใหม่] รอ 1.5 วินาทีก่อนโชว์ผล เพื่อแก้บั๊กคะแนนเหลื่อม 1 แต้ม!
+    IEnumerator WaitAndSyncBeforeResults()
+    {
+        yield return new WaitForSeconds(1.5f);
         ShowFinalResults();
     }
 
@@ -94,9 +104,7 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
         return 0;
     }
 
-    // ==========================================
-    // 📸 [เพิ่มใหม่] ระบบแคปหน้าจอ (Screenshot)
-    // ==========================================
+    // --- ระบบแคปหน้าจอ ---
     public void OnClickTakeScreenshot()
     {
         StartCoroutine(CaptureScreenRoutine());
@@ -104,10 +112,7 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
 
     IEnumerator CaptureScreenRoutine()
     {
-        // ปิดปุ่มแชร์หรือปุ่มเมนูตรงนี้ได้ (ถ้าปอตั้งตัวแปรไว้) เพื่อให้ภาพออกมาคลีนๆ
-        // yield return new WaitForSeconds(0.1f); // รอสักนิดถ้ามี UI กำลังปิด
-
-        yield return new WaitForEndOfFrame(); // สำคัญมาก! ต้องรอให้ภาพเรนเดอร์จบเฟรมก่อนค่อยแคป
+        yield return new WaitForEndOfFrame();
 
         int width = Screen.width;
         int height = Screen.height;
@@ -122,16 +127,13 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
         string fileName = "DClub_Score_" + System.DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".png";
 
 #if UNITY_WEBGL && !UNITY_EDITOR
-        // ถ้าเล่นบนเว็บ สั่งให้เบราว์เซอร์ดาวน์โหลดรูปลงคอม
         DownloadScreenshotJS(bytes, bytes.Length, fileName);
 #else
-        // ถ้าเทสต์ใน Unity ให้เซฟไฟล์ไว้ในโฟลเดอร์โปรเจกต์
         string savePath = Application.dataPath + "/../" + fileName;
         System.IO.File.WriteAllBytes(savePath, bytes);
         Debug.Log("📸 แคปหน้าจอสำเร็จ! ไฟล์เซฟไว้ที่: " + savePath);
 #endif
     }
-    // ==========================================
 
     void ShareToFacebook()
     {

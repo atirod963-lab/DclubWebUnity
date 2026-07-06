@@ -44,7 +44,6 @@ public class TouchManager2D : MonoBehaviour
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // 🚫 [เอาโค้ดรีเซ็ตออกแล้ว] ปล่อยให้คะแนนสะสมต่อไปยาวๆ ทั้ง 3 เกมตามที่ปอบอกเลยครับ!
         FindUIElements();
         UpdateScoreUI();
     }
@@ -83,6 +82,12 @@ public class TouchManager2D : MonoBehaviour
     {
         if (!isGameActive) return;
 
+        // 🛑 [ดักโฮสต์] ถ้าเป็น Spectator ให้เด้งออกจากระบบสแกนนิ้วไปเลย! ยืนดูได้อย่างเดียว
+        if (PhotonNetwork.InRoom && PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Role"))
+        {
+            if ((string)PhotonNetwork.LocalPlayer.CustomProperties["Role"] == "Spectator") return;
+        }
+
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
@@ -108,21 +113,11 @@ public class TouchManager2D : MonoBehaviour
 
         if (hitCollider != null)
         {
-            bool isHost = false;
-            if (PhotonNetwork.InRoom && PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Role"))
-            {
-                string role = (string)PhotonNetwork.LocalPlayer.CustomProperties["Role"];
-                if (role == "Spectator") isHost = true;
-            }
-
             if (hitCollider.CompareTag("Healthy Food") || hitCollider.CompareTag("Hoop") || hitCollider.CompareTag("Water"))
             {
-                if (!isHost)
-                {
-                    score += 1;
-                    UpdateScoreUI();
-                    if (GameManager.Instance != null) GameManager.Instance.AddScoreToMyTeam();
-                }
+                score += 1;
+                UpdateScoreUI();
+                if (GameManager.Instance != null) GameManager.Instance.AddScoreToMyTeam();
 
                 if (hitCollider.CompareTag("Hoop"))
                 {
@@ -145,12 +140,9 @@ public class TouchManager2D : MonoBehaviour
             }
             else if (hitCollider.CompareTag("Junk Food"))
             {
-                if (!isHost)
-                {
-                    score -= 1;
-                    UpdateScoreUI();
-                    if (GameManager.Instance != null) GameManager.Instance.SubtractScoreToMyTeam();
-                }
+                score -= 1;
+                UpdateScoreUI();
+                if (GameManager.Instance != null) GameManager.Instance.SubtractScoreToMyTeam();
 
                 SoundManager.Instance?.PlaySFX(SFXId.WrongTap);
                 Destroy(hitCollider.gameObject);
