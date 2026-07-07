@@ -17,17 +17,22 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     public const string PROP_GAME_START_TS = "StartTS";
     public const int TOTAL_ROUNDS = 3;
 
-    [Header("Prefabs")]
-    public GameObject jigsawPiecePrefab;
+    [Header("โหมดการเล่น")]
+    public bool isSoloMode = false; // ติ๊กถูกถ้าด่านนี้เป็น Solo Mode
+
+    [Header("Prefabs (ลาก Master Prefab มาใส่เรียงตามด่าน)")]
+    // ⚠️ สำคัญ: Prefab ทุกอันต้องอยู่ในโฟลเดอร์ Resources เท่านั้น ถึงจะเสกผ่าน Photon ได้
+    public GameObject[] soloPrefabs = new GameObject[3]; // ช่อง 0=ด่าน1, ช่อง 1=ด่าน2, ช่อง 2=ด่าน3
+    public GameObject[] multiPrefabs = new GameObject[3];
 
     [Header("ข้อมูลทีม")]
     public int myTeam = 1;
 
     // =========================================================
     [Header("🔮 ตั้งค่ากระดาน & ภาพไกด์ลางๆ")]
-    public float pieceSpacing = 1.2f; // ดึงออกมาเป็นตัวแปรกลาง! จะได้ใช้ร่วมกันทั้งตอนเสกจริงและเสกไกด์
+    public float pieceSpacing = 1.2f;
     [Range(0f, 1f)]
-    public float guideAlpha = 0.25f;  // ความจางของภาพไกด์ (0.25 = จาง 25%)
+    public float guideAlpha = 0.25f;
     public float guideScale = 0.55f;
     // =========================================================
 
@@ -51,7 +56,7 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     private int gameStartTimestamp = 0;
 
     private List<JigsawPiece> pieces = new List<JigsawPiece>();
-    private List<GameObject> guidePieces = new List<GameObject>(); // เก็บออบเจกต์ภาพไกด์ไว้ทำลายตอนจบด่าน
+    private List<GameObject> guidePieces = new List<GameObject>();
 
     void Start()
     {
@@ -105,44 +110,74 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
         roundText.text = $"ภาพที่ {round} / {TOTAL_ROUNDS}";
 
-        // 🔮 สั่งเสกภาพไกด์ลางๆ ลงบนกระดานทันที! (สั่งรันทั้งเครื่อง Master และ Client จะได้เห็นเหมือนกัน)
         CreateBoardGuide();
 
         if (PhotonNetwork.IsMasterClient) SpawnPieces();
 
         isRunning = true;
         SaveRoundToRoom(round);
-
     }
 
     // =========================================================
-    // ฟังก์ชันประกอบร่างภาพไกด์ลางๆ
+    // ระบบดึงข้อมูลตามโหมดและด่าน
+    // =========================================================
+    GameObject GetCurrentPrefab()
+    {
+        int idx = Mathf.Clamp(currentRound - 1, 0, 2);
+        return isSoloMode ? soloPrefabs[idx] : multiPrefabs[idx];
+    }
+
+    int GetTotalPieces()
+    {
+        if (isSoloMode)
+        {
+            if (currentRound == 1) return 9;
+            if (currentRound == 2) return 12;
+            if (currentRound == 3) return 15;
+        }
+        else
+        {
+            if (currentRound == 1) return 3;
+            if (currentRound == 2) return 6;
+            if (currentRound == 3) return 9;
+        }
+        return 9;
+    }
+
+    int GetDecoyCount()
+    {
+        if (!isSoloMode) return 0; // Multi ไม่มีตัวหลอก
+        if (currentRound == 1) return 2;
+        if (currentRound == 2) return 4;
+        if (currentRound == 3) return 6;
+        return 0;
+    }
+
+    // =========================================================
+    // สร้างภาพไกด์ลางๆ
     // =========================================================
     void CreateBoardGuide()
     {
-        // 1. ทำลายภาพไกด์ของด่านที่แล้วทิ้งให้หมดก่อน
         foreach (var g in guidePieces) { if (g != null) Destroy(g); }
         guidePieces.Clear();
 
-        if (boardParent == null || jigsawPiecePrefab == null) return;
+        GameObject currentPrefab = GetCurrentPrefab();
+        if (boardParent == null || currentPrefab == null) return;
 
-        // 2. ไปแอบดูชื่อสไปรต์ชีตจาก JigsawPiece ที่อยู่ใน Prefab
         string sheetName = "Galactic pink Multi";
-        var pieceScript = jigsawPiecePrefab.GetComponent<JigsawPiece>();
+        var pieceScript = currentPrefab.GetComponent<JigsawPiece>();
         if (pieceScript != null && !string.IsNullOrEmpty(pieceScript.spriteSheetName))
         {
             sheetName = pieceScript.spriteSheetName;
         }
 
-        // 3. โหลดสไปรต์ย่อย 9 ชิ้น
         Sprite[] allSlices = Resources.LoadAll<Sprite>(sheetName);
-        if (allSlices == null || allSlices.Length < 9) return;
+        int pieceCount = GetTotalPieces();
+        if (allSlices == null || allSlices.Length < pieceCount) return;
 
-        // 4. ประกอบร่างตาราง 3x3 ทับตำแหน่งเป้าหมาย
-        // 4. ประกอบร่างตาราง 3x3 ทับตำแหน่งเป้าหมาย
-        for (int i = 0; i < 9; i++)
+        for (int i = 0; i < pieceCount; i++)
         {
-            int col = i % 3;
+            int col = i % 3; // คงที่ไว้ที่ 3 คอลัมน์ มันจะเรียงลงไปแถว 4, 5 เอง
             int row = i / 3;
             Vector2 targetPos = (Vector2)boardParent.position
                                 + new Vector2(col * pieceSpacing - pieceSpacing, row * pieceSpacing - pieceSpacing);
@@ -150,8 +185,6 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
             GameObject ghostObj = new GameObject($"GuideSlice_{i}");
             ghostObj.transform.position = targetPos;
             ghostObj.transform.SetParent(boardParent);
-
-            // 🔥 [เพิ่มบรรทัดนี้ลงไป!!] บังคับย่อสเกลลงมาเหลือ 0.55 ตามที่สั่งเป๊ะ
             ghostObj.transform.localScale = new Vector3(guideScale, guideScale, 1f);
 
             SpriteRenderer sr = ghostObj.AddComponent<SpriteRenderer>();
@@ -163,10 +196,15 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         }
     }
 
+    // =========================================================
+    // เสกชิ้นส่วน (จริงและหลอก)
+    // =========================================================
     void SpawnPieces()
     {
-        totalPieces = 9;
-        // เปลี่ยนจากที่เคยเขียน float spacing = 1.2f; ตายตัวในนี้ ไปใช้ pieceSpacing ของคลาสแทน!
+        GameObject currentPrefab = GetCurrentPrefab();
+        totalPieces = GetTotalPieces();
+
+        // 1. เสกชิ้นส่วนหลัก (ของจริง)
         for (int i = 0; i < totalPieces; i++)
         {
             int col = i % 3;
@@ -177,7 +215,7 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
             Vector2 spawnPos = (Vector2)pieceSpawnArea.position
                                 + new Vector2(Random.Range(-3f, 3f), Random.Range(-0.5f, 0.5f));
 
-            GameObject obj = PhotonNetwork.Instantiate(jigsawPiecePrefab.name, spawnPos, Quaternion.identity);
+            GameObject obj = PhotonNetwork.Instantiate(currentPrefab.name, spawnPos, Quaternion.identity);
 
             JigsawPiece piece = obj.GetComponent<JigsawPiece>();
             piece.pieceIndex = i;
@@ -186,11 +224,50 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
             pieces.Add(piece);
         }
+
+        // 2. เสกชิ้นส่วนหลอก (Decoys) เฉพาะถ้าเป็น Solo Mode
+        int decoyCount = GetDecoyCount();
+        for (int i = 0; i < decoyCount; i++)
+        {
+            GameObject decoyPrefab = GetRandomDecoyPrefab(currentPrefab);
+            if (decoyPrefab == null) continue;
+
+            Vector2 spawnPos = (Vector2)pieceSpawnArea.position
+                                + new Vector2(Random.Range(-3f, 3f), Random.Range(-0.5f, 0.5f));
+
+            // เสก Prefab รูปอื่นขึ้นมา
+            GameObject obj = PhotonNetwork.Instantiate(decoyPrefab.name, spawnPos, Quaternion.identity);
+            JigsawPiece piece = obj.GetComponent<JigsawPiece>();
+
+            // สุ่มว่าจะเอาชิ้นไหนของรูปหลอกมาแสดง (สุ่มจาก 0 ถึง 8 เพื่อความปลอดภัย)
+            piece.pieceIndex = Random.Range(0, 8);
+            piece.originalPosition = spawnPos;
+            // 🔥 ไฮไลท์: ตั้งเป้าหมายไว้ที่ๆ ไม่มีวันต่อถึง (9999) เพื่อให้มันต่อเข้ากรอบไม่ได้!
+            piece.targetPosition = new Vector2(9999f, 9999f);
+
+            pieces.Add(piece);
+        }
+    }
+
+    // สุ่มหา Prefab อื่นที่ไม่ใช่รูปปัจจุบัน เอามาเป็นตัวหลอก
+    GameObject GetRandomDecoyPrefab(GameObject excludePrefab)
+    {
+        List<GameObject> allPrefabs = new List<GameObject>();
+        allPrefabs.AddRange(soloPrefabs);
+        allPrefabs.AddRange(multiPrefabs);
+
+        // ลบรูปที่กำลังต่ออยู่ออกไปจากกองสุ่ม
+        allPrefabs.Remove(excludePrefab);
+        allPrefabs.RemoveAll(item => item == null);
+
+        if (allPrefabs.Count == 0) return null;
+        return allPrefabs[Random.Range(0, allPrefabs.Count)];
     }
 
     public void OnPiecePlaced()
     {
         piecesPlaced++;
+        // เช็คชนะโดยนับแค่จำนวนชิ้นจริง (totalPieces) พวกชิ้นหลอกจะไม่ถูกนับ
         if (piecesPlaced >= totalPieces) OnRoundComplete();
     }
 

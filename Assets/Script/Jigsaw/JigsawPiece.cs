@@ -10,7 +10,7 @@ using System.Collections;
 public class JigsawPiece : MonoBehaviourPun, IPunOwnershipCallbacks
 {
     [Header("ตั้งค่าไฟล์รูปประจำตัว")]
-    public string spriteSheetName = "Galactic pink Multi";
+    public string spriteSheetName = "";
 
     [Header("ข้อมูลชิ้นส่วน")]
     public int pieceIndex;

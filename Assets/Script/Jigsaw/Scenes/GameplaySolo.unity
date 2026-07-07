@@ -300,7 +300,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7616e618229c2045927154da200f4b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  jigsawPiecePrefab: {fileID: 5645424372977451899, guid: 2421ed3c58cbfa04a8d3960d19de52ee, type: 3}
+  isSoloMode: 1
+  soloPrefabs:
+  - {fileID: 5645424372977451899, guid: 2421ed3c58cbfa04a8d3960d19de52ee, type: 3}
+  - {fileID: 5947302828692013413, guid: 112cb2e2254bc174c915be5041e5d3ec, type: 3}
+  - {fileID: 2385072349309476844, guid: dfd1d1d9f9a649240ba72bb6da6cc971, type: 3}
+  multiPrefabs:
+  - {fileID: 4990891531401713886, guid: f72706aaa5798ca4c9cf20b2cccf9623, type: 3}
+  - {fileID: 436398750451611173, guid: 1f1f545d84e765a48b8edcd8d3254908, type: 3}
+  - {fileID: 2197351358352170514, guid: 890cde15972b0d24f80cfe5d6a458942, type: 3}
   myTeam: 1
   pieceSpacing: 1.2
   guideAlpha: 0.25
