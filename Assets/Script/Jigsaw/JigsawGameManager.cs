@@ -18,11 +18,10 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     public const int TOTAL_ROUNDS = 3;
 
     [Header("โหมดการเล่น")]
-    public bool isSoloMode = false; // ติ๊กถูกถ้าด่านนี้เป็น Solo Mode
+    public bool isSoloMode = false;
 
     [Header("Prefabs (ลาก Master Prefab มาใส่เรียงตามด่าน)")]
-    // ⚠️ สำคัญ: Prefab ทุกอันต้องอยู่ในโฟลเดอร์ Resources เท่านั้น ถึงจะเสกผ่าน Photon ได้
-    public GameObject[] soloPrefabs = new GameObject[3]; // ช่อง 0=ด่าน1, ช่อง 1=ด่าน2, ช่อง 2=ด่าน3
+    public GameObject[] soloPrefabs = new GameObject[3];
     public GameObject[] multiPrefabs = new GameObject[3];
 
     [Header("ข้อมูลทีม")]
@@ -30,10 +29,10 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
     // =========================================================
     [Header("🔮 ตั้งค่ากระดาน & ภาพไกด์ลางๆ")]
-    public float pieceSpacing = 1.2f;
     [Range(0f, 1f)]
     public float guideAlpha = 0.25f;
     public float guideScale = 0.55f;
+    // หมายเหตุ: ลบ pieceSpacing ออกไปแล้วเพราะเราใช้ขนาดจริงของรูปแทน!
     // =========================================================
 
     [Header("UI")]
@@ -74,6 +73,15 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
         elapsedTime += Time.deltaTime;
         UpdateTimerUI();
+    }
+
+    public void ShowConflictEffect(Vector3 position)
+    {
+        if (conflictEffectPrefab != null)
+        {
+            GameObject effect = Instantiate(conflictEffectPrefab, position, Quaternion.identity);
+            Destroy(effect, 1f);
+        }
     }
 
     public override void OnRoomPropertiesUpdate(Hashtable changedProps)
@@ -118,9 +126,6 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         SaveRoundToRoom(round);
     }
 
-    // =========================================================
-    // ระบบดึงข้อมูลตามโหมดและด่าน
-    // =========================================================
     GameObject GetCurrentPrefab()
     {
         int idx = Mathf.Clamp(currentRound - 1, 0, 2);
@@ -146,10 +151,65 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
     int GetDecoyCount()
     {
-        if (!isSoloMode) return 0; // Multi ไม่มีตัวหลอก
+        if (!isSoloMode) return 0;
         if (currentRound == 1) return 2;
         if (currentRound == 2) return 4;
         if (currentRound == 3) return 6;
+        return 0;
+    }
+
+    // =========================================================
+    // 🛠️ สูตรคำนวณตำแหน่งจิ๊กซอว์แบบเป๊ะ 100% (ใหม่ล่าสุด)
+    // =========================================================
+    public Vector2 CalculateTargetPosition(int index, int totalPieces, Sprite sliceSprite)
+    {
+        // อ่านค่าความกว้างและความสูงจริงๆ ของไฟล์ภาพ แล้วคูณด้วยสเกล
+        float pieceWidth = sliceSprite.bounds.size.x * guideScale;
+        float pieceHeight = sliceSprite.bounds.size.y * guideScale;
+
+        int cols = 3; // ล็อกคอลัมน์ไว้ที่ 3
+        int rows = totalPieces / cols; // คำนวณแถวอัตโนมัติ (ได้ 3, 4, หรือ 5 แถว)
+
+        int col = index % cols;
+        int row = index / cols;
+
+        // คำนวณพิกัดให้อยู่กึ่งกลางหน้าจอเสมอ ไม่ว่าจะโดนหั่นมากี่ชิ้น
+        float posX = (col - (cols - 1) / 2f) * pieceWidth;
+        float posY = (row - (rows - 1) / 2f) * pieceHeight;
+
+        return (Vector2)boardParent.position + new Vector2(posX, posY);
+    }
+
+    // =========================================================
+    // ระบบตรวจสอบการวางจิ๊กซอว์
+    // =========================================================
+    public int ValidateDrop(Vector2 dropPos, int pieceIndex, float snapDist, out Vector2 snappedPos)
+    {
+        snappedPos = dropPos;
+        if (boardParent == null) return 0;
+
+        int total = GetTotalPieces();
+
+        // ดึงรูปมาเพื่อเอาขนาดไปสแกนหาช่องที่ถูกต้อง
+        GameObject currentPrefab = GetCurrentPrefab();
+        string sheetName = "Galactic pink Multi";
+        var pieceScript = currentPrefab.GetComponent<JigsawPiece>();
+        if (pieceScript != null && !string.IsNullOrEmpty(pieceScript.spriteSheetName)) sheetName = pieceScript.spriteSheetName;
+        Sprite[] allSlices = Resources.LoadAll<Sprite>(sheetName);
+        if (allSlices == null || allSlices.Length == 0) return 0;
+
+        for (int i = 0; i < total; i++)
+        {
+            // เช็คกับทุกช่องบนกระดาน โดยอิงจากขนาดภาพจริง
+            Vector2 slotPos = CalculateTargetPosition(i, total, allSlices[0]);
+
+            if (Vector2.Distance(dropPos, slotPos) <= snapDist)
+            {
+                snappedPos = slotPos;
+                return (i == pieceIndex) ? 1 : -1;
+            }
+        }
+
         return 0;
     }
 
@@ -166,10 +226,7 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
         string sheetName = "Galactic pink Multi";
         var pieceScript = currentPrefab.GetComponent<JigsawPiece>();
-        if (pieceScript != null && !string.IsNullOrEmpty(pieceScript.spriteSheetName))
-        {
-            sheetName = pieceScript.spriteSheetName;
-        }
+        if (pieceScript != null && !string.IsNullOrEmpty(pieceScript.spriteSheetName)) sheetName = pieceScript.spriteSheetName;
 
         Sprite[] allSlices = Resources.LoadAll<Sprite>(sheetName);
         int pieceCount = GetTotalPieces();
@@ -177,10 +234,8 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
         for (int i = 0; i < pieceCount; i++)
         {
-            int col = i % 3; // คงที่ไว้ที่ 3 คอลัมน์ มันจะเรียงลงไปแถว 4, 5 เอง
-            int row = i / 3;
-            Vector2 targetPos = (Vector2)boardParent.position
-                                + new Vector2(col * pieceSpacing - pieceSpacing, row * pieceSpacing - pieceSpacing);
+            // เรียกใช้ฟังก์ชันคำนวณตำแหน่งใหม่
+            Vector2 targetPos = CalculateTargetPosition(i, pieceCount, allSlices[0]);
 
             GameObject ghostObj = new GameObject($"GuideSlice_{i}");
             ghostObj.transform.position = targetPos;
@@ -204,14 +259,17 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         GameObject currentPrefab = GetCurrentPrefab();
         totalPieces = GetTotalPieces();
 
+        string sheetName = "Galactic pink Multi";
+        var pScript = currentPrefab.GetComponent<JigsawPiece>();
+        if (pScript != null && !string.IsNullOrEmpty(pScript.spriteSheetName)) sheetName = pScript.spriteSheetName;
+        Sprite[] allSlices = Resources.LoadAll<Sprite>(sheetName);
+        if (allSlices == null || allSlices.Length == 0) return;
+
         // 1. เสกชิ้นส่วนหลัก (ของจริง)
         for (int i = 0; i < totalPieces; i++)
         {
-            int col = i % 3;
-            int row = i / 3;
-            Vector2 targetPos = (Vector2)boardParent.position
-                                + new Vector2(col * pieceSpacing - pieceSpacing, row * pieceSpacing - pieceSpacing);
-
+            // เรียกใช้ฟังก์ชันคำนวณตำแหน่งใหม่
+            Vector2 targetPos = CalculateTargetPosition(i, totalPieces, allSlices[0]);
             Vector2 spawnPos = (Vector2)pieceSpawnArea.position
                                 + new Vector2(Random.Range(-3f, 3f), Random.Range(-0.5f, 0.5f));
 
@@ -225,7 +283,7 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
             pieces.Add(piece);
         }
 
-        // 2. เสกชิ้นส่วนหลอก (Decoys) เฉพาะถ้าเป็น Solo Mode
+        // 2. เสกชิ้นส่วนหลอก (Decoys)
         int decoyCount = GetDecoyCount();
         for (int i = 0; i < decoyCount; i++)
         {
@@ -235,28 +293,23 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
             Vector2 spawnPos = (Vector2)pieceSpawnArea.position
                                 + new Vector2(Random.Range(-3f, 3f), Random.Range(-0.5f, 0.5f));
 
-            // เสก Prefab รูปอื่นขึ้นมา
             GameObject obj = PhotonNetwork.Instantiate(decoyPrefab.name, spawnPos, Quaternion.identity);
             JigsawPiece piece = obj.GetComponent<JigsawPiece>();
 
-            // สุ่มว่าจะเอาชิ้นไหนของรูปหลอกมาแสดง (สุ่มจาก 0 ถึง 8 เพื่อความปลอดภัย)
             piece.pieceIndex = Random.Range(0, 8);
             piece.originalPosition = spawnPos;
-            // 🔥 ไฮไลท์: ตั้งเป้าหมายไว้ที่ๆ ไม่มีวันต่อถึง (9999) เพื่อให้มันต่อเข้ากรอบไม่ได้!
             piece.targetPosition = new Vector2(9999f, 9999f);
 
             pieces.Add(piece);
         }
     }
 
-    // สุ่มหา Prefab อื่นที่ไม่ใช่รูปปัจจุบัน เอามาเป็นตัวหลอก
     GameObject GetRandomDecoyPrefab(GameObject excludePrefab)
     {
         List<GameObject> allPrefabs = new List<GameObject>();
         allPrefabs.AddRange(soloPrefabs);
         allPrefabs.AddRange(multiPrefabs);
 
-        // ลบรูปที่กำลังต่ออยู่ออกไปจากกองสุ่ม
         allPrefabs.Remove(excludePrefab);
         allPrefabs.RemoveAll(item => item == null);
 
@@ -267,8 +320,12 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     public void OnPiecePlaced()
     {
         piecesPlaced++;
-        // เช็คชนะโดยนับแค่จำนวนชิ้นจริง (totalPieces) พวกชิ้นหลอกจะไม่ถูกนับ
         if (piecesPlaced >= totalPieces) OnRoundComplete();
+    }
+
+    public void ResetPlacedCount()
+    {
+        piecesPlaced = 0;
     }
 
     void OnRoundComplete()
