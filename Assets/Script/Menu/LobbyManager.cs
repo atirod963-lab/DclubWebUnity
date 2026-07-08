@@ -25,12 +25,9 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     public TextMeshProUGUI redTeamListText;
     public Button startGameButton;
 
-    // ---------------------------------------------------------
-    // 🖼️ [เพิ่มใหม่] ช่องใส่รูปอวาตาร์ฝั่ง Host 
-    // ---------------------------------------------------------
     [Header("Host Team Avatars (โชว์รูปคนในห้อง)")]
-    public Image hostGreenAvatar; // ลาก Image กรอบสี่เหลี่ยมสีเขียวมาใส่
-    public Image hostRedAvatar;   // ลาก Image กรอบสี่เหลี่ยมสีแดงมาใส่
+    public Image hostGreenAvatar;
+    public Image hostRedAvatar;
 
     [Header("Avatar Selection UI")]
     public Image avatarDisplayImage;
@@ -52,7 +49,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
         if (warningText != null) warningText.gameObject.SetActive(false);
 
-        // ซ่อนรูปอวาตาร์ฝั่งโฮสต์ไว้ก่อนตอนเริ่มเกม
         if (hostGreenAvatar != null) hostGreenAvatar.gameObject.SetActive(false);
         if (hostRedAvatar != null) hostRedAvatar.gameObject.SetActive(false);
 
@@ -150,7 +146,45 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     }
 
     public void OnClickSinglePlayer() { SceneManager.LoadScene("MG1_1"); }
-    public void OnClickBackToMain() { ShowPanel(mainMenuPanel); }
+
+    // ---------------------------------------------------------
+    // 🔙 [อัปเกรดใหม่] ระบบปุ่มย้อนกลับแบบเคลียร์วิญญาณออกจากห้อง
+    // ---------------------------------------------------------
+    public void OnClickBackToMain()
+    {
+        if (PhotonNetwork.InRoom)
+        {
+            // ถ้าอยู่ในห้อง (เป็นโฮสต์ หรือกดจอยไปแล้ว) ให้กดออกจากห้องก่อน
+            if (playerStatusText != null) playerStatusText.text = "กำลังออกจากห้อง...";
+            PhotonNetwork.LeaveRoom();
+        }
+        else
+        {
+            // ถ้ายังไม่ได้เข้าห้อง ก็กลับหน้าเมนูหลักได้เลยทันที
+            ResetToMainMenu();
+        }
+    }
+
+    // ฟังก์ชันนี้จะถูกเรียกอัตโนมัติเมื่อกดออกจากห้องสำเร็จ
+    public override void OnLeftRoom()
+    {
+        ResetToMainMenu();
+    }
+
+    void ResetToMainMenu()
+    {
+        isHost = false;
+        if (playerStatusText != null) playerStatusText.text = "";
+
+        // เคลียร์รายชื่อโฮสต์
+        if (greenTeamListText != null) greenTeamListText.text = "Green Team:\n";
+        if (redTeamListText != null) redTeamListText.text = "Red Team:\n";
+        if (hostGreenAvatar != null) hostGreenAvatar.gameObject.SetActive(false);
+        if (hostRedAvatar != null) hostRedAvatar.gameObject.SetActive(false);
+
+        ShowPanel(mainMenuPanel);
+    }
+    // ---------------------------------------------------------
 
     public override void OnJoinedRoom()
     {
@@ -217,7 +251,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         string greenList = "Green Team:\n";
         string redList = "Red Team:\n";
 
-        // 🧹 เคลียร์รูปภาพซ่อนไว้ก่อน เผื่อมีคนกดออกจากห้องรูปจะได้หายไป
         if (hostGreenAvatar != null) hostGreenAvatar.gameObject.SetActive(false);
         if (hostRedAvatar != null) hostRedAvatar.gameObject.SetActive(false);
 
@@ -231,7 +264,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks
                 if (team == "Green")
                 {
                     greenList += p.NickName + "\n";
-                    // ดึงรูปมาโชว์ในกรอบสีเขียว
                     if (hostGreenAvatar != null && avatarId >= 0 && avatarId < avatarSprites.Length)
                     {
                         hostGreenAvatar.sprite = avatarSprites[avatarId];
@@ -241,7 +273,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks
                 else if (team == "Red")
                 {
                     redList += p.NickName + "\n";
-                    // ดึงรูปมาโชว์ในกรอบสีแดง
                     if (hostRedAvatar != null && avatarId >= 0 && avatarId < avatarSprites.Length)
                     {
                         hostRedAvatar.sprite = avatarSprites[avatarId];
