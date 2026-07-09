@@ -46,6 +46,8 @@ MonoBehaviour:
   - RPC_ReleasePiece
   - RPC_AddScoreInstant
   - RPC_SubtractScoreInstant
+  - RPC_DropFreely
+  - RPC_ResetBoard
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

@@ -147,25 +147,19 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     public void OnClickSinglePlayer() { SceneManager.LoadScene("MG1_1"); }
 
-    // ---------------------------------------------------------
-    // 🔙 [อัปเกรดใหม่] ระบบปุ่มย้อนกลับแบบเคลียร์วิญญาณออกจากห้อง
-    // ---------------------------------------------------------
     public void OnClickBackToMain()
     {
         if (PhotonNetwork.InRoom)
         {
-            // ถ้าอยู่ในห้อง (เป็นโฮสต์ หรือกดจอยไปแล้ว) ให้กดออกจากห้องก่อน
             if (playerStatusText != null) playerStatusText.text = "กำลังออกจากห้อง...";
             PhotonNetwork.LeaveRoom();
         }
         else
         {
-            // ถ้ายังไม่ได้เข้าห้อง ก็กลับหน้าเมนูหลักได้เลยทันที
             ResetToMainMenu();
         }
     }
 
-    // ฟังก์ชันนี้จะถูกเรียกอัตโนมัติเมื่อกดออกจากห้องสำเร็จ
     public override void OnLeftRoom()
     {
         ResetToMainMenu();
@@ -174,9 +168,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     void ResetToMainMenu()
     {
         isHost = false;
-        if (playerStatusText != null) playerStatusText.text = "";
 
-        // เคลียร์รายชื่อโฮสต์
         if (greenTeamListText != null) greenTeamListText.text = "Green Team:\n";
         if (redTeamListText != null) redTeamListText.text = "Red Team:\n";
         if (hostGreenAvatar != null) hostGreenAvatar.gameObject.SetActive(false);
@@ -184,7 +176,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
         ShowPanel(mainMenuPanel);
     }
-    // ---------------------------------------------------------
 
     public override void OnJoinedRoom()
     {
@@ -241,8 +232,59 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer) { UpdateHostUI(); }
-    public override void OnPlayerLeftRoom(Player otherPlayer) { UpdateHostUI(); }
-    public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps) { UpdateHostUI(); }
+
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        UpdateHostUI();
+
+        if (otherPlayer.CustomProperties.ContainsKey("Role") && (string)otherPlayer.CustomProperties["Role"] == "Spectator")
+        {
+            if (!isHost)
+            {
+                if (playerStatusText != null) playerStatusText.text = "โฮสต์ปิดห้องไปแล้ว! กรุณาเข้าห้องใหม่";
+                PhotonNetwork.LeaveRoom();
+            }
+        }
+    }
+
+    public void OnClickKickGreenPlayer()
+    {
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        foreach (Player p in PhotonNetwork.PlayerList)
+        {
+            if (p.CustomProperties.ContainsKey("Team") && (string)p.CustomProperties["Team"] == "Green")
+            {
+                PhotonNetwork.CloseConnection(p);
+                break;
+            }
+        }
+    }
+
+    // 🥾 [เพิ่มใหม่] ฟังก์ชันสำหรับให้โฮสต์กด "เตะผู้เล่นสีแดง"
+    public void OnClickKickRedPlayer()
+    {
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        foreach (Player p in PhotonNetwork.PlayerList)
+        {
+            if (p.CustomProperties.ContainsKey("Team") && (string)p.CustomProperties["Team"] == "Red")
+            {
+                PhotonNetwork.CloseConnection(p);
+                break;
+            }
+        }
+    }
+
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        if (cause == DisconnectCause.DisconnectByServerLogic || cause == DisconnectCause.DisconnectByServerReasonUnknown)
+        {
+            if (playerStatusText != null) playerStatusText.text = "คุณถูกเตะออกจากห้อง!";
+            ResetToMainMenu();
+            PhotonNetwork.ConnectUsingSettings();
+        }
+    }
 
     void UpdateHostUI()
     {

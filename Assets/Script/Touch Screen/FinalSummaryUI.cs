@@ -29,7 +29,7 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
 
     void Start()
     {
-        // 🔄 [อัปเกรดใหม่] ตั้งค่าตัวหนังสือตอนเริ่มฉาก เพื่อถ่วงเวลารอข้อมูล
+
         if (winnerNameText != null) winnerNameText.text = "กำลังคำนวณผลลัพธ์...";
         if (p1ScoreText != null) p1ScoreText.text = "";
         if (p2ScoreText != null) p2ScoreText.text = "";
@@ -39,11 +39,9 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
 
         if (facebookShareButton != null) facebookShareButton.onClick.AddListener(ShareToFacebook);
 
-        // สั่งให้เริ่มนับถอยหลังรอเน็ตซิงค์
         StartCoroutine(WaitAndSyncBeforeResults());
     }
 
-    // ⏳ [ฟังก์ชันใหม่] รอ 1.5 วินาทีก่อนโชว์ผล เพื่อแก้บั๊กคะแนนเหลื่อม 1 แต้ม!
     IEnumerator WaitAndSyncBeforeResults()
     {
         yield return new WaitForSeconds(1.5f);
@@ -104,7 +102,6 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
         return 0;
     }
 
-    // --- ระบบแคปหน้าจอ ---
     public void OnClickTakeScreenshot()
     {
         StartCoroutine(CaptureScreenRoutine());
@@ -147,14 +144,12 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
         Application.OpenURL(facebookShareURL);
     }
 
+
     public void OnClickBackToLobby()
     {
-        if (PhotonNetwork.IsConnected && PhotonNetwork.InRoom)
+        if (PhotonNetwork.InRoom)
         {
-            if (PhotonNetwork.IsMasterClient)
-                PhotonNetwork.LoadLevel("menu");
-            else
-                PhotonNetwork.LeaveRoom();
+            PhotonNetwork.LeaveRoom();
         }
         else
         {
