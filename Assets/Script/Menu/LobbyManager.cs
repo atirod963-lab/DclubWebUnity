@@ -8,7 +8,7 @@ using ExitGames.Client.Photon;
 using UnityEngine.SceneManagement;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 
-public class LobbyManager : MonoBehaviourPunCallbacks
+public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 {
     [Header("Room Settings")]
     [Tooltip("จำกัดจำนวนคนสูงสุดต่อ 1 ทีม (ค่าเริ่มต้นคือ 1 vs 1)")]
@@ -41,6 +41,23 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     private int selectedAvatarIndex = 0;
     private bool isHost = false;
+
+
+    private const byte KICK_EVENT_CODE = 199;
+
+
+    public override void OnEnable()
+    {
+        base.OnEnable();
+        PhotonNetwork.AddCallbackTarget(this);
+    }
+
+    public override void OnDisable()
+    {
+        base.OnDisable();
+        PhotonNetwork.RemoveCallbackTarget(this);
+    }
+
 
     void Start()
     {
@@ -255,13 +272,12 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         {
             if (p.CustomProperties.ContainsKey("Team") && (string)p.CustomProperties["Team"] == "Green")
             {
-                PhotonNetwork.CloseConnection(p);
+                KickPlayerViaEvent(p.ActorNumber);
                 break;
             }
         }
     }
 
-    // 🥾 [เพิ่มใหม่] ฟังก์ชันสำหรับให้โฮสต์กด "เตะผู้เล่นสีแดง"
     public void OnClickKickRedPlayer()
     {
         if (!PhotonNetwork.IsMasterClient) return;
@@ -270,19 +286,30 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         {
             if (p.CustomProperties.ContainsKey("Team") && (string)p.CustomProperties["Team"] == "Red")
             {
-                PhotonNetwork.CloseConnection(p);
+                KickPlayerViaEvent(p.ActorNumber);
                 break;
             }
         }
     }
 
-    public override void OnDisconnected(DisconnectCause cause)
+    void KickPlayerViaEvent(int targetActorNumber)
     {
-        if (cause == DisconnectCause.DisconnectByServerLogic || cause == DisconnectCause.DisconnectByServerReasonUnknown)
+        RaiseEventOptions raiseEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All };
+        SendOptions sendOptions = new SendOptions { Reliability = true };
+        PhotonNetwork.RaiseEvent(KICK_EVENT_CODE, targetActorNumber, raiseEventOptions, sendOptions);
+    }
+
+    public void OnEvent(EventData photonEvent)
+    {
+        if (photonEvent.Code == KICK_EVENT_CODE)
         {
-            if (playerStatusText != null) playerStatusText.text = "คุณถูกเตะออกจากห้อง!";
-            ResetToMainMenu();
-            PhotonNetwork.ConnectUsingSettings();
+            int kickedActorNr = (int)photonEvent.CustomData;
+
+            if (PhotonNetwork.LocalPlayer.ActorNumber == kickedActorNr)
+            {
+                if (playerStatusText != null) playerStatusText.text = "คุณถูกเตะออกจากห้องโดยโฮสต์!";
+                PhotonNetwork.LeaveRoom(); 
+            }
         }
     }
 
