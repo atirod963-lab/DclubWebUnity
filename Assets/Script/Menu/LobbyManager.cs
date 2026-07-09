@@ -162,19 +162,17 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
         PhotonNetwork.JoinRoom(code);
     }
 
-    public void OnClickSinglePlayer() { SceneManager.LoadScene("MG1_1"); }
-
-    public void OnClickBackToMain()
+    public void OnClickSinglePlayer()
     {
-        if (PhotonNetwork.InRoom)
-        {
-            if (playerStatusText != null) playerStatusText.text = "กำลังออกจากห้อง...";
-            PhotonNetwork.LeaveRoom();
-        }
-        else
-        {
-            ResetToMainMenu();
-        }
+        if (!CheckNameInput()) return;
+
+        PlayerPrefs.SetString("OfflineName", playerNameInput.text.Trim());
+        PlayerPrefs.SetInt("OfflineAvatar", selectedAvatarIndex);
+        PlayerPrefs.Save();
+
+        if (TouchManager2D.Instance != null) TouchManager2D.Instance.score = 0;
+
+        SceneManager.LoadScene("MG1_1");
     }
 
     public override void OnLeftRoom()

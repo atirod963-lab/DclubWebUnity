@@ -29,7 +29,6 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
 
     void Start()
     {
-
         if (winnerNameText != null) winnerNameText.text = "กำลังคำนวณผลลัพธ์...";
         if (p1ScoreText != null) p1ScoreText.text = "";
         if (p2ScoreText != null) p2ScoreText.text = "";
@@ -50,6 +49,12 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
 
     void ShowFinalResults()
     {
+        if (!PhotonNetwork.InRoom)
+        {
+            ShowSinglePlayerResults();
+            return;
+        }
+
         var players = PhotonNetwork.PlayerList.OrderByDescending(p => GetScore(p)).ToList();
 
         if (players.Count >= 1)
@@ -79,6 +84,30 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
                 SetPlayerAvatar(players[1], loserAvatarDisplay);
             }
         }
+    }
+
+    void ShowSinglePlayerResults()
+    {
+        string offlineName = PlayerPrefs.GetString("OfflineName", "Player");
+        int offlineAvatar = PlayerPrefs.GetInt("OfflineAvatar", 0);
+
+        int offlineScore = 0;
+        if (TouchManager2D.Instance != null) offlineScore = TouchManager2D.Instance.score;
+
+        winnerNameText.text = $"🏆 {offlineName} WIN! 🏆";
+        p1ScoreText.text = $"{offlineName}: {offlineScore} pts";
+        if (p2ScoreText != null) p2ScoreText.text = "";
+
+        topWinnerName = offlineName;
+        topScore = offlineScore;
+
+        if (winnerAvatarDisplay != null && offlineAvatar >= 0 && offlineAvatar < avatarSprites.Length)
+        {
+            winnerAvatarDisplay.sprite = avatarSprites[offlineAvatar];
+            winnerAvatarDisplay.gameObject.SetActive(true);
+        }
+
+        if (loserAvatarDisplay != null) loserAvatarDisplay.gameObject.SetActive(false);
     }
 
     void SetPlayerAvatar(Player player, Image targetImage)
@@ -144,9 +173,13 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
         Application.OpenURL(facebookShareURL);
     }
 
-
     public void OnClickBackToLobby()
     {
+        if (TouchManager2D.Instance != null)
+        {
+            Destroy(TouchManager2D.Instance.gameObject);
+        }
+
         if (PhotonNetwork.InRoom)
         {
             PhotonNetwork.LeaveRoom();

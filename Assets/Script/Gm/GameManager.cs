@@ -62,6 +62,13 @@ public class GameManager : MonoBehaviourPunCallbacks
             isHost = false;
             if (playerViewPanel != null) playerViewPanel.SetActive(true);
             if (hostViewPanel != null) hostViewPanel.SetActive(false);
+
+            if (TouchManager2D.Instance != null)
+            {
+                currentGreenScore = TouchManager2D.Instance.score;
+            }
+            UpdateScoreUI();
+
             return;
         }
 
@@ -228,12 +235,8 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
     }
 
-    // ---------------------------------------------------------
-    // 🛠️ [แก้บั๊กที่นี่] บล็อกโฮสต์ไม่ให้มารันโค้ดเขียนทับคะแนน!
-    // ---------------------------------------------------------
     void SyncScoreToLocalTouchManager()
     {
-        // 🛑 ถ้าเป็นโฮสต์ให้หยุดทำงานทันที (return) จะได้ไม่ไปกวนคะแนนหน้าจอโฮสต์
         if (isHost || !PhotonNetwork.InRoom || TouchManager2D.Instance == null) return;
 
         if (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Team"))
@@ -251,7 +254,6 @@ public class GameManager : MonoBehaviourPunCallbacks
             }
         }
     }
-    // ---------------------------------------------------------
 
     IEnumerator ScorePopTrick(TextMeshProUGUI scoreText, Color flashColor)
     {
