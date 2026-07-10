@@ -14,6 +14,10 @@ public class TouchManager2D : MonoBehaviour
     public string scoreTextName = "ScoreText";
     public string timerTextName = "TimerText";
 
+    [Header("Floating Score Prefabs")]
+    public GameObject plusScorePrefab;  // ใส่ Prefab ตัวเลข +1
+    public GameObject minusScorePrefab; // ใส่ Prefab ตัวเลข -1
+
     private TextMeshProUGUI scoreText;
     private TextMeshProUGUI timerText;
 
@@ -119,6 +123,13 @@ public class TouchManager2D : MonoBehaviour
                 UpdateScoreUI();
                 if (GameManager.Instance != null) GameManager.Instance.AddScoreToMyTeam();
 
+                // 🟢 เสกตัวเลข +1 เยื้องไปด้านขวาบนเล็กน้อย
+                if (plusScorePrefab != null)
+                {
+                    Vector3 popupPos = hitCollider.transform.position + new Vector3(0.5f, 0.5f, 0f);
+                    Instantiate(plusScorePrefab, popupPos, Quaternion.identity);
+                }
+
                 if (hitCollider.CompareTag("Hoop"))
                 {
                     SoundManager.Instance?.PlaySFX(SFXId.HoopShoot);
@@ -143,6 +154,13 @@ public class TouchManager2D : MonoBehaviour
                 score -= 1;
                 UpdateScoreUI();
                 if (GameManager.Instance != null) GameManager.Instance.SubtractScoreToMyTeam();
+
+                // 🔴 เสกตัวเลข -1 เยื้องไปด้านขวาบนเล็กน้อย
+                if (minusScorePrefab != null)
+                {
+                    Vector3 popupPos = hitCollider.transform.position + new Vector3(0.5f, 0.5f, 0f);
+                    Instantiate(minusScorePrefab, popupPos, Quaternion.identity);
+                }
 
                 SoundManager.Instance?.PlaySFX(SFXId.WrongTap);
                 Destroy(hitCollider.gameObject);
