@@ -367,4 +367,16 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
         if (playerJoinPanel != null) playerJoinPanel.SetActive(false);
         if (activePanel != null) activePanel.SetActive(true);
     }
+    public void OnClickBackToMain()
+    {
+        if (PhotonNetwork.InRoom)
+        {
+            if (playerStatusText != null) playerStatusText.text = "กำลังออกจากห้อง...";
+            PhotonNetwork.LeaveRoom();
+        }
+        else
+        {
+            ResetToMainMenu();
+        }
+    }
 }

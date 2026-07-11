@@ -14,6 +14,10 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     public const string PROP_TEAM2_ROUND = "T2Round";
     public const string PROP_TEAM1_TIME = "T1Time";
     public const string PROP_TEAM2_TIME = "T2Time";
+
+    public const string PROP_TEAM1_PROGRESS = "T1Progress";
+    public const string PROP_TEAM2_PROGRESS = "T2Progress";
+
     public const string PROP_GAME_START_TS = "StartTS";
     public const int TOTAL_ROUNDS = 3;
 
@@ -27,13 +31,10 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     [Header("ข้อมูลทีม")]
     public int myTeam = 1;
 
-    // =========================================================
     [Header("🔮 ตั้งค่ากระดาน & ภาพไกด์ลางๆ")]
     [Range(0f, 1f)]
     public float guideAlpha = 0.25f;
     public float guideScale = 0.55f;
-    // หมายเหตุ: ลบ pieceSpacing ออกไปแล้วเพราะเราใช้ขนาดจริงของรูปแทน!
-    // =========================================================
 
     [Header("UI")]
     public TextMeshProUGUI timerText;
@@ -45,25 +46,40 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     public Transform boardParent;
     public Transform pieceSpawnArea;
 
+    [Header("Penalty Safety")]
+    [Tooltip("กันไม่ให้ TriggerPenaltyReset ถูกยิงซ้ำถี่ๆ จากการเช็ค ValidateDrop ทุกเฟรมระหว่างลาก")]
+    public float penaltyCooldownSeconds = 1.0f;
+
     private int currentRound = 1;
     private int piecesPlaced = 0;
     private int totalPieces = 0;
     private float elapsedTime = 0f;
     private bool isRunning = false;
     private bool isFinished = false;
+    private bool isPenaltyOnCooldown = false;
 
     private int gameStartTimestamp = 0;
 
     private List<JigsawPiece> pieces = new List<JigsawPiece>();
     private List<GameObject> guidePieces = new List<GameObject>();
 
+    // แคชสไปรต์ชีทของรอบปัจจุบัน กันไม่ให้ Resources.LoadAll ถูกเรียกซ้ำทุกครั้งที่ตรวจสอบการวาง
+    private Sprite[] cachedSlices;
+    private string cachedSheetName;
+
+    public bool[] isPiecePlaced;
+
     void Start()
     {
-        if (PhotonNetwork.IsMasterClient)
+        if (PhotonNetwork.IsMasterClient && !isSoloMode)
         {
             int startTS = PhotonNetwork.ServerTimestamp + 3000;
             var props = new Hashtable { { PROP_GAME_START_TS, startTS } };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+        }
+        else if (isSoloMode)
+        {
+            StartCoroutine(CountdownAndStart(3f));
         }
     }
 
@@ -86,7 +102,7 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
     public override void OnRoomPropertiesUpdate(Hashtable changedProps)
     {
-        if (changedProps.ContainsKey(PROP_GAME_START_TS) && !isRunning)
+        if (changedProps.ContainsKey(PROP_GAME_START_TS) && !isRunning && !isSoloMode)
         {
             gameStartTimestamp = (int)changedProps[PROP_GAME_START_TS];
             int msUntilStart = gameStartTimestamp - PhotonNetwork.ServerTimestamp;
@@ -116,11 +132,20 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         piecesPlaced = 0;
         pieces.Clear();
 
+        totalPieces = GetTotalPieces();
+        isPiecePlaced = new bool[totalPieces];
+
+        // สไปรต์ชีทอาจเปลี่ยนไปตามด่าน ต้องโหลดใหม่และรีเซ็ตแคชทุกครั้งที่ขึ้นรอบใหม่
+        cachedSlices = null;
+        cachedSheetName = null;
+        LoadSlicesForCurrentPrefab();
+
         roundText.text = $"ภาพที่ {round} / {TOTAL_ROUNDS}";
 
         CreateBoardGuide();
+        UpdateProgressToRoom();
 
-        if (PhotonNetwork.IsMasterClient) SpawnPieces();
+        SpawnPieces();
 
         isRunning = true;
         SaveRoundToRoom(round);
@@ -158,64 +183,125 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         return 0;
     }
 
-    // =========================================================
-    // 🛠️ สูตรคำนวณตำแหน่งจิ๊กซอว์แบบเป๊ะ 100% (ใหม่ล่าสุด)
-    // =========================================================
+    // โหลดสไปรต์ชีทของ prefab ปัจจุบันเพียงครั้งเดียวต่อรอบ แล้ว cache เอาไว้ใช้ซ้ำ
+    Sprite[] LoadSlicesForCurrentPrefab()
+    {
+        GameObject currentPrefab = GetCurrentPrefab();
+        if (currentPrefab == null) return cachedSlices;
+
+        string sheetName = "Galactic pink Multi";
+        var pieceScript = currentPrefab.GetComponent<JigsawPiece>();
+        if (pieceScript != null && !string.IsNullOrEmpty(pieceScript.spriteSheetName)) sheetName = pieceScript.spriteSheetName;
+
+        if (cachedSlices != null && cachedSheetName == sheetName) return cachedSlices;
+
+        cachedSlices = Resources.LoadAll<Sprite>(sheetName);
+        cachedSheetName = sheetName;
+        return cachedSlices;
+    }
+
     public Vector2 CalculateTargetPosition(int index, int totalPieces, Sprite sliceSprite)
     {
-        // อ่านค่าความกว้างและความสูงจริงๆ ของไฟล์ภาพ แล้วคูณด้วยสเกล
         float pieceWidth = sliceSprite.bounds.size.x * guideScale;
         float pieceHeight = sliceSprite.bounds.size.y * guideScale;
 
-        int cols = 3; // ล็อกคอลัมน์ไว้ที่ 3
-        int rows = totalPieces / cols; // คำนวณแถวอัตโนมัติ (ได้ 3, 4, หรือ 5 แถว)
+        int cols = 3;
+        // ใช้ CeilToInt กันไว้เผื่อ totalPieces ไม่ลงตัวพอดีกับ cols ในอนาคต
+        int rows = Mathf.CeilToInt(totalPieces / (float)cols);
 
         int col = index % cols;
         int row = index / cols;
 
-        // คำนวณพิกัดให้อยู่กึ่งกลางหน้าจอเสมอ ไม่ว่าจะโดนหั่นมากี่ชิ้น
         float posX = (col - (cols - 1) / 2f) * pieceWidth;
         float posY = (row - (rows - 1) / 2f) * pieceHeight;
 
         return (Vector2)boardParent.position + new Vector2(posX, posY);
     }
 
-    // =========================================================
-    // ระบบตรวจสอบการวางจิ๊กซอว์
-    // =========================================================
+    /// <summary>
+    /// ตรวจสอบการวางชิ้นส่วนลงกระดาน
+    /// สำหรับชิ้นหลอก (decoy) ฝั่ง JigsawPiece จะส่ง pieceIndex เป็น -1 เข้ามาเสมอ
+    /// เพื่อบังคับให้ไม่มีวันตรงกับสล็อตจริงไหนเลย แม้จะวางใกล้สล็อตก็ถือว่าวางผิด (-1)
+    /// </summary>
     public int ValidateDrop(Vector2 dropPos, int pieceIndex, float snapDist, out Vector2 snappedPos)
     {
         snappedPos = dropPos;
         if (boardParent == null) return 0;
 
         int total = GetTotalPieces();
-
-        // ดึงรูปมาเพื่อเอาขนาดไปสแกนหาช่องที่ถูกต้อง
-        GameObject currentPrefab = GetCurrentPrefab();
-        string sheetName = "Galactic pink Multi";
-        var pieceScript = currentPrefab.GetComponent<JigsawPiece>();
-        if (pieceScript != null && !string.IsNullOrEmpty(pieceScript.spriteSheetName)) sheetName = pieceScript.spriteSheetName;
-        Sprite[] allSlices = Resources.LoadAll<Sprite>(sheetName);
+        Sprite[] allSlices = LoadSlicesForCurrentPrefab();
         if (allSlices == null || allSlices.Length == 0) return 0;
 
         for (int i = 0; i < total; i++)
         {
-            // เช็คกับทุกช่องบนกระดาน โดยอิงจากขนาดภาพจริง
             Vector2 slotPos = CalculateTargetPosition(i, total, allSlices[0]);
 
             if (Vector2.Distance(dropPos, slotPos) <= snapDist)
             {
                 snappedPos = slotPos;
-                return (i == pieceIndex) ? 1 : -1;
+                if (i == pieceIndex)
+                {
+                    if (isPiecePlaced != null && pieceIndex < isPiecePlaced.Length && isPiecePlaced[pieceIndex])
+                    {
+                        TriggerPenaltyReset();
+                        return -1;
+                    }
+                    return 1;
+                }
+                return -1;
             }
         }
-
         return 0;
     }
 
-    // =========================================================
-    // สร้างภาพไกด์ลางๆ
-    // =========================================================
+    public void TriggerPenaltyReset()
+    {
+        // กัน TriggerPenaltyReset ถูกยิงซ้ำถี่ๆ ในเสี้ยววินาทีเดียวกัน
+        // (เช่นตอน ValidateDrop ถูกเรียกทุกเฟรมระหว่างลากใกล้สล็อตที่วางไปแล้ว)
+        if (isPenaltyOnCooldown) return;
+        isPenaltyOnCooldown = true;
+        StartCoroutine(ResetPenaltyCooldown());
+
+        if (isSoloMode)
+        {
+            RPC_PenaltyReset(myTeam);
+        }
+        else
+        {
+            photonView.RPC("RPC_PenaltyReset", RpcTarget.All, myTeam);
+        }
+    }
+
+    IEnumerator ResetPenaltyCooldown()
+    {
+        yield return new WaitForSeconds(penaltyCooldownSeconds);
+        isPenaltyOnCooldown = false;
+    }
+
+    [PunRPC]
+    void RPC_PenaltyReset(int penalizedTeam)
+    {
+        if (!isSoloMode && myTeam != penalizedTeam) return;
+
+        ShowConflictEffect(boardParent.position);
+
+        DestroyAllPieces();
+        BeginRound(currentRound);
+
+        if (roundText != null)
+        {
+            StartCoroutine(ShowPenaltyText());
+        }
+    }
+
+    IEnumerator ShowPenaltyText()
+    {
+        string originalText = $"ภาพที่ {currentRound} / {TOTAL_ROUNDS}";
+        roundText.text = "<color=red>วางซ้ำ! โดนรีเซ็ตกระดาน!</color>";
+        yield return new WaitForSeconds(3f);
+        roundText.text = originalText;
+    }
+
     void CreateBoardGuide()
     {
         foreach (var g in guidePieces) { if (g != null) Destroy(g); }
@@ -224,17 +310,12 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         GameObject currentPrefab = GetCurrentPrefab();
         if (boardParent == null || currentPrefab == null) return;
 
-        string sheetName = "Galactic pink Multi";
-        var pieceScript = currentPrefab.GetComponent<JigsawPiece>();
-        if (pieceScript != null && !string.IsNullOrEmpty(pieceScript.spriteSheetName)) sheetName = pieceScript.spriteSheetName;
-
-        Sprite[] allSlices = Resources.LoadAll<Sprite>(sheetName);
+        Sprite[] allSlices = LoadSlicesForCurrentPrefab();
         int pieceCount = GetTotalPieces();
         if (allSlices == null || allSlices.Length < pieceCount) return;
 
         for (int i = 0; i < pieceCount; i++)
         {
-            // เรียกใช้ฟังก์ชันคำนวณตำแหน่งใหม่
             Vector2 targetPos = CalculateTargetPosition(i, pieceCount, allSlices[0]);
 
             GameObject ghostObj = new GameObject($"GuideSlice_{i}");
@@ -251,29 +332,18 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         }
     }
 
-    // =========================================================
-    // เสกชิ้นส่วน (จริงและหลอก)
-    // =========================================================
     void SpawnPieces()
     {
         GameObject currentPrefab = GetCurrentPrefab();
-        totalPieces = GetTotalPieces();
-
-        string sheetName = "Galactic pink Multi";
-        var pScript = currentPrefab.GetComponent<JigsawPiece>();
-        if (pScript != null && !string.IsNullOrEmpty(pScript.spriteSheetName)) sheetName = pScript.spriteSheetName;
-        Sprite[] allSlices = Resources.LoadAll<Sprite>(sheetName);
+        Sprite[] allSlices = LoadSlicesForCurrentPrefab();
         if (allSlices == null || allSlices.Length == 0) return;
 
-        // 1. เสกชิ้นส่วนหลัก (ของจริง)
         for (int i = 0; i < totalPieces; i++)
         {
-            // เรียกใช้ฟังก์ชันคำนวณตำแหน่งใหม่
             Vector2 targetPos = CalculateTargetPosition(i, totalPieces, allSlices[0]);
-            Vector2 spawnPos = (Vector2)pieceSpawnArea.position
-                                + new Vector2(Random.Range(-3f, 3f), Random.Range(-0.5f, 0.5f));
+            Vector2 spawnPos = (Vector2)pieceSpawnArea.position + new Vector2(Random.Range(-3f, 3f), Random.Range(-0.5f, 0.5f));
 
-            GameObject obj = PhotonNetwork.Instantiate(currentPrefab.name, spawnPos, Quaternion.identity);
+            GameObject obj = Instantiate(currentPrefab, spawnPos, Quaternion.identity);
 
             JigsawPiece piece = obj.GetComponent<JigsawPiece>();
             piece.pieceIndex = i;
@@ -283,20 +353,31 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
             pieces.Add(piece);
         }
 
-        // 2. เสกชิ้นส่วนหลอก (Decoys)
         int decoyCount = GetDecoyCount();
         for (int i = 0; i < decoyCount; i++)
         {
             GameObject decoyPrefab = GetRandomDecoyPrefab(currentPrefab);
             if (decoyPrefab == null) continue;
 
-            Vector2 spawnPos = (Vector2)pieceSpawnArea.position
-                                + new Vector2(Random.Range(-3f, 3f), Random.Range(-0.5f, 0.5f));
+            Vector2 spawnPos = (Vector2)pieceSpawnArea.position + new Vector2(Random.Range(-3f, 3f), Random.Range(-0.5f, 0.5f));
 
-            GameObject obj = PhotonNetwork.Instantiate(decoyPrefab.name, spawnPos, Quaternion.identity);
+            GameObject obj = Instantiate(decoyPrefab, spawnPos, Quaternion.identity);
             JigsawPiece piece = obj.GetComponent<JigsawPiece>();
 
-            piece.pieceIndex = Random.Range(0, 8);
+            // สำคัญ: JigsawPiece.Start() ใช้ pieceIndex ไปหยิบสไปรต์จาก "สไปรต์ชีทของตัวเอง" (spriteSheetName ของ decoy)
+            // ซึ่งอาจมีจำนวนชิ้นน้อยกว่าด่านปัจจุบันมาก ต้องสุ่ม index ให้อยู่ในช่วงของชีทของตัวเอง
+            // ไม่ใช่ของด่านปัจจุบัน ไม่งั้นจะ IndexOutOfRange ตอน decoy โหลดสไปรต์ตัวเอง
+            var decoyScript = decoyPrefab.GetComponent<JigsawPiece>();
+            int decoyIndexRange = totalPieces;
+            if (decoyScript != null && !string.IsNullOrEmpty(decoyScript.spriteSheetName))
+            {
+                Sprite[] decoySlices = Resources.LoadAll<Sprite>(decoyScript.spriteSheetName);
+                if (decoySlices != null && decoySlices.Length > 0) decoyIndexRange = decoySlices.Length;
+            }
+
+            // ตำแหน่ง target ตั้งไว้ไกลเกิน 9000 หน่วย เพื่อให้ JigsawPiece รู้ตัวว่าเป็น decoy
+            // แล้วส่ง checkIndex = -1 ให้ ValidateDrop เอง (ดูใน JigsawPiece.TrySnap)
+            piece.pieceIndex = Random.Range(0, decoyIndexRange);
             piece.originalPosition = spawnPos;
             piece.targetPosition = new Vector2(9999f, 9999f);
 
@@ -317,15 +398,61 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         return allPrefabs[Random.Range(0, allPrefabs.Count)];
     }
 
-    public void OnPiecePlaced()
+    public void OnPiecePlaced(int pieceIndex)
     {
+        if (isSoloMode)
+        {
+            RPC_UpdateBoard(pieceIndex, myTeam);
+        }
+        else
+        {
+            photonView.RPC("RPC_UpdateBoard", RpcTarget.All, pieceIndex, myTeam);
+        }
+    }
+
+    [PunRPC]
+    void RPC_UpdateBoard(int pieceIndex, int teamWhoScored)
+    {
+        if (!isSoloMode && myTeam != teamWhoScored) return;
+
+        if (isPiecePlaced[pieceIndex])
+        {
+            TriggerPenaltyReset();
+            return;
+        }
+
+        isPiecePlaced[pieceIndex] = true;
         piecesPlaced++;
-        if (piecesPlaced >= totalPieces) OnRoundComplete();
+
+        if (guidePieces.Count > pieceIndex && guidePieces[pieceIndex] != null)
+        {
+            guidePieces[pieceIndex].GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 1f);
+            guidePieces[pieceIndex].GetComponent<SpriteRenderer>().sortingOrder = 5;
+        }
+
+        UpdateProgressToRoom();
+
+        if (piecesPlaced >= totalPieces)
+        {
+            OnRoundComplete();
+        }
+    }
+
+    void UpdateProgressToRoom()
+    {
+        if (isSoloMode) return;
+        if (PhotonNetwork.CurrentRoom == null) return; // กันพังตอนไม่มีห้อง (เช่นทดสอบออฟไลน์)
+
+        string key = (myTeam == 1) ? PROP_TEAM1_PROGRESS : PROP_TEAM2_PROGRESS;
+        string progressText = $"{piecesPlaced}/{totalPieces}";
+        var props = new Hashtable { { key, progressText } };
+        PhotonNetwork.CurrentRoom.SetCustomProperties(props);
     }
 
     public void ResetPlacedCount()
     {
         piecesPlaced = 0;
+        UpdateProgressToRoom();
     }
 
     void OnRoundComplete()
@@ -342,13 +469,44 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     {
         isRunning = false;
         isFinished = true;
+
+        if (PhotonNetwork.CurrentRoom != null)
+        {
+            string key = (myTeam == 1) ? PROP_TEAM1_PROGRESS : PROP_TEAM2_PROGRESS;
+            var props = new Hashtable { { key, "FINISH!" } };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+        }
+
         SaveTimeToRoom(elapsedTime);
         StartCoroutine(LoadSummaryScene());
     }
 
     IEnumerator LoadSummaryScene() { yield return new WaitForSeconds(2f); PhotonNetwork.LoadLevel("SummaryScene"); }
-    void DestroyAllPieces() { if (!PhotonNetwork.IsMasterClient) return; foreach (var p in pieces) { if (p != null) PhotonNetwork.Destroy(p.gameObject); } pieces.Clear(); }
-    void SaveRoundToRoom(int round) { string key = (myTeam == 1) ? PROP_TEAM1_ROUND : PROP_TEAM2_ROUND; var props = new Hashtable { { key, round } }; PhotonNetwork.CurrentRoom.SetCustomProperties(props); }
-    void SaveTimeToRoom(float time) { string key = (myTeam == 1) ? PROP_TEAM1_TIME : PROP_TEAM2_TIME; var props = new Hashtable { { key, time } }; PhotonNetwork.CurrentRoom.SetCustomProperties(props); }
+
+    void DestroyAllPieces()
+    {
+        foreach (var p in pieces)
+        {
+            if (p != null) Destroy(p.gameObject);
+        }
+        pieces.Clear();
+    }
+
+    void SaveRoundToRoom(int round)
+    {
+        if (PhotonNetwork.CurrentRoom == null) return;
+        string key = (myTeam == 1) ? PROP_TEAM1_ROUND : PROP_TEAM2_ROUND;
+        var props = new Hashtable { { key, round } };
+        PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+    }
+
+    void SaveTimeToRoom(float time)
+    {
+        if (PhotonNetwork.CurrentRoom == null) return;
+        string key = (myTeam == 1) ? PROP_TEAM1_TIME : PROP_TEAM2_TIME;
+        var props = new Hashtable { { key, time } };
+        PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+    }
+
     void UpdateTimerUI() { int min = (int)(elapsedTime / 60); int sec = (int)(elapsedTime % 60); timerText.text = $"{min:00}:{sec:00}"; }
 }

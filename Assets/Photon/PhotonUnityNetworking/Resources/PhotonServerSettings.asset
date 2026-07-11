@@ -48,6 +48,8 @@ MonoBehaviour:
   - RPC_SubtractScoreInstant
   - RPC_DropFreely
   - RPC_ResetBoard
+  - RPC_PenaltyReset
+  - RPC_UpdateBoard
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0
