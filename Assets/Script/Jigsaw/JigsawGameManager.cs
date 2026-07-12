@@ -63,7 +63,7 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     private List<JigsawPiece> pieces = new List<JigsawPiece>();
     private List<GameObject> guidePieces = new List<GameObject>();
 
-    // แคชสไปรต์ชีทของรอบปัจจุบัน กันไม่ให้ Resources.LoadAll ถูกเรียกซ้ำทุกครั้งที่ตรวจสอบการวาง
+
     private Sprite[] cachedSlices;
     private string cachedSheetName;
 
@@ -71,15 +71,31 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
     void Start()
     {
-        if (PhotonNetwork.IsMasterClient && !isSoloMode)
+
+        if (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Team"))
         {
-            int startTS = PhotonNetwork.ServerTimestamp + 3000;
-            var props = new Hashtable { { PROP_GAME_START_TS, startTS } };
-            PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+            myTeam = (int)PhotonNetwork.LocalPlayer.CustomProperties["Team"];
         }
-        else if (isSoloMode)
+
+        if (isSoloMode)
         {
             StartCoroutine(CountdownAndStart(3f));
+        }
+        else
+        {
+            if (PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey(PROP_GAME_START_TS))
+            {
+                gameStartTimestamp = (int)PhotonNetwork.CurrentRoom.CustomProperties[PROP_GAME_START_TS];
+                int msUntilStart = gameStartTimestamp - PhotonNetwork.ServerTimestamp;
+                StartCoroutine(CountdownAndStart(Mathf.Max(0, msUntilStart / 1000f)));
+            }
+            else
+            {
+                int startTS = PhotonNetwork.ServerTimestamp + 3000;
+                var props = new Hashtable { { PROP_GAME_START_TS, startTS } };
+                if (PhotonNetwork.CurrentRoom != null)
+                    PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+            }
         }
     }
 
@@ -218,11 +234,6 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         return (Vector2)boardParent.position + new Vector2(posX, posY);
     }
 
-    /// <summary>
-    /// ตรวจสอบการวางชิ้นส่วนลงกระดาน
-    /// สำหรับชิ้นหลอก (decoy) ฝั่ง JigsawPiece จะส่ง pieceIndex เป็น -1 เข้ามาเสมอ
-    /// เพื่อบังคับให้ไม่มีวันตรงกับสล็อตจริงไหนเลย แม้จะวางใกล้สล็อตก็ถือว่าวางผิด (-1)
-    /// </summary>
     public int ValidateDrop(Vector2 dropPos, int pieceIndex, float snapDist, out Vector2 snappedPos)
     {
         snappedPos = dropPos;
@@ -241,6 +252,7 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
                 snappedPos = slotPos;
                 if (i == pieceIndex)
                 {
+                    // 🌟 เช็คว่าช่องนี้มีคนวางไปหรือยัง ถ้ามีคนวางแล้วให้ยิงคำสั่ง Penalty
                     if (isPiecePlaced != null && pieceIndex < isPiecePlaced.Length && isPiecePlaced[pieceIndex])
                     {
                         TriggerPenaltyReset();
@@ -256,8 +268,6 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
     public void TriggerPenaltyReset()
     {
-        // กัน TriggerPenaltyReset ถูกยิงซ้ำถี่ๆ ในเสี้ยววินาทีเดียวกัน
-        // (เช่นตอน ValidateDrop ถูกเรียกทุกเฟรมระหว่างลากใกล้สล็อตที่วางไปแล้ว)
         if (isPenaltyOnCooldown) return;
         isPenaltyOnCooldown = true;
         StartCoroutine(ResetPenaltyCooldown());
@@ -268,6 +278,7 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         }
         else
         {
+            // 🌟 ยิงคำสั่งไปหาทุกคน พร้อมแนบหมายเลขทีมของเรา (myTeam) ไปด้วย
             photonView.RPC("RPC_PenaltyReset", RpcTarget.All, myTeam);
         }
     }
@@ -281,10 +292,12 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     [PunRPC]
     void RPC_PenaltyReset(int penalizedTeam)
     {
+        // 🌟 ป้องกันไม่ให้ทีมอื่นโดนลูกหลง: ถ้ารหัสทีมที่โดนลงโทษ ไม่ใช่ทีมเรา ให้ข้ามคำสั่งนี้ไปเลย!
         if (!isSoloMode && myTeam != penalizedTeam) return;
 
         ShowConflictEffect(boardParent.position);
 
+        // ทำลายชิ้นส่วนและเริ่มรอบเดิมใหม่เพื่อล้างค่ากระดานทั้งหมด
         DestroyAllPieces();
         BeginRound(currentRound);
 
@@ -304,7 +317,13 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
     void CreateBoardGuide()
     {
-        foreach (var g in guidePieces) { if (g != null) Destroy(g); }
+        if (boardParent != null)
+        {
+            foreach (Transform child in boardParent)
+            {
+                Destroy(child.gameObject);
+            }
+        }
         guidePieces.Clear();
 
         GameObject currentPrefab = GetCurrentPrefab();
@@ -364,9 +383,6 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
             GameObject obj = Instantiate(decoyPrefab, spawnPos, Quaternion.identity);
             JigsawPiece piece = obj.GetComponent<JigsawPiece>();
 
-            // สำคัญ: JigsawPiece.Start() ใช้ pieceIndex ไปหยิบสไปรต์จาก "สไปรต์ชีทของตัวเอง" (spriteSheetName ของ decoy)
-            // ซึ่งอาจมีจำนวนชิ้นน้อยกว่าด่านปัจจุบันมาก ต้องสุ่ม index ให้อยู่ในช่วงของชีทของตัวเอง
-            // ไม่ใช่ของด่านปัจจุบัน ไม่งั้นจะ IndexOutOfRange ตอน decoy โหลดสไปรต์ตัวเอง
             var decoyScript = decoyPrefab.GetComponent<JigsawPiece>();
             int decoyIndexRange = totalPieces;
             if (decoyScript != null && !string.IsNullOrEmpty(decoyScript.spriteSheetName))
@@ -375,8 +391,6 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
                 if (decoySlices != null && decoySlices.Length > 0) decoyIndexRange = decoySlices.Length;
             }
 
-            // ตำแหน่ง target ตั้งไว้ไกลเกิน 9000 หน่วย เพื่อให้ JigsawPiece รู้ตัวว่าเป็น decoy
-            // แล้วส่ง checkIndex = -1 ให้ ValidateDrop เอง (ดูใน JigsawPiece.TrySnap)
             piece.pieceIndex = Random.Range(0, decoyIndexRange);
             piece.originalPosition = spawnPos;
             piece.targetPosition = new Vector2(9999f, 9999f);
@@ -413,6 +427,8 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     [PunRPC]
     void RPC_UpdateBoard(int pieceIndex, int teamWhoScored)
     {
+        Debug.Log($"[Network] ได้รับคำสั่งอัปเดตกระดาน: ชิ้นที่ {pieceIndex} จากทีม {teamWhoScored} | ทีมของเราคือ {myTeam}");
+
         if (!isSoloMode && myTeam != teamWhoScored) return;
 
         if (isPiecePlaced[pieceIndex])
@@ -430,6 +446,14 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
             guidePieces[pieceIndex].GetComponent<SpriteRenderer>().sortingOrder = 5;
         }
 
+        foreach (var p in pieces)
+        {
+            if (p != null && p.pieceIndex == pieceIndex)
+            {
+                Destroy(p.gameObject);
+            }
+        }
+
         UpdateProgressToRoom();
 
         if (piecesPlaced >= totalPieces)
@@ -441,7 +465,7 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     void UpdateProgressToRoom()
     {
         if (isSoloMode) return;
-        if (PhotonNetwork.CurrentRoom == null) return; // กันพังตอนไม่มีห้อง (เช่นทดสอบออฟไลน์)
+        if (PhotonNetwork.CurrentRoom == null) return;
 
         string key = (myTeam == 1) ? PROP_TEAM1_PROGRESS : PROP_TEAM2_PROGRESS;
         string progressText = $"{piecesPlaced}/{totalPieces}";
@@ -485,7 +509,8 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
     void DestroyAllPieces()
     {
-        foreach (var p in pieces)
+        JigsawPiece[] allPiecesInScene = FindObjectsOfType<JigsawPiece>();
+        foreach (JigsawPiece p in allPiecesInScene)
         {
             if (p != null) Destroy(p.gameObject);
         }

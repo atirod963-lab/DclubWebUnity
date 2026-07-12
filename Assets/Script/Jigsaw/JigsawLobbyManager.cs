@@ -386,6 +386,9 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
     void KickPlayerViaEvent(int actorNr)
     {
         if (!PhotonNetwork.IsMasterClient) return;
+
+        Debug.Log($"[โฮสต์] กำลังส่งสัญญาณเตะผู้เล่น ID: {actorNr}");
+
         RaiseEventOptions raiseEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All };
         SendOptions sendOptions = new SendOptions { Reliability = true };
         PhotonNetwork.RaiseEvent(KICK_EVENT_CODE, actorNr, raiseEventOptions, sendOptions);
@@ -396,7 +399,12 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
         if (photonEvent.Code == KICK_EVENT_CODE)
         {
             int kickedActorNr = (int)photonEvent.CustomData;
-            if (PhotonNetwork.LocalPlayer.ActorNumber == kickedActorNr) PhotonNetwork.LeaveRoom();
+
+            if (PhotonNetwork.LocalPlayer.ActorNumber == kickedActorNr)
+            {
+                Debug.Log("โดนโฮสต์เตะออกจากห้อง!");
+                PhotonNetwork.LeaveRoom();
+            }
         }
     }
 

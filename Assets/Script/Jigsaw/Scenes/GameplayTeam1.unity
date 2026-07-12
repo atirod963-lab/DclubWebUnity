@@ -281,6 +281,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1073936621}
   - component: {fileID: 1073936620}
+  - component: {fileID: 1073936622}
   m_Layer: 0
   m_Name: Game Manager
   m_TagString: Untagged
@@ -300,7 +301,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7616e618229c2045927154da200f4b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isSoloMode: 1
+  isSoloMode: 0
   soloPrefabs:
   - {fileID: 5645424372977451899, guid: 2421ed3c58cbfa04a8d3960d19de52ee, type: 3}
   - {fileID: 5947302828692013413, guid: 112cb2e2254bc174c915be5041e5d3ec, type: 3}
@@ -310,7 +311,6 @@ MonoBehaviour:
   - {fileID: 436398750451611173, guid: 1f1f545d84e765a48b8edcd8d3254908, type: 3}
   - {fileID: 2197351358352170514, guid: 890cde15972b0d24f80cfe5d6a458942, type: 3}
   myTeam: 1
-  pieceSpacing: 1.2
   guideAlpha: 0.25
   guideScale: 0.55
   timerText: {fileID: 2024685738}
@@ -319,6 +319,8 @@ MonoBehaviour:
   conflictEffectPrefab: {fileID: 0}
   boardParent: {fileID: 1559038583}
   pieceSpawnArea: {fileID: 789710566}
+  penaltyCooldownSeconds: 1
+  isPiecePlaced: 
 --- !u!4 &1073936621
 Transform:
   m_ObjectHideFlags: 0
@@ -334,6 +336,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1073936622
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1073936619}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 999
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &1095423261
 GameObject:
   m_ObjectHideFlags: 0
