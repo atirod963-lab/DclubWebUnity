@@ -4300,6 +4300,8 @@ MonoBehaviour:
   - {fileID: 21300000, guid: a558afe2cfb9bdd4bbe2c81cd48ae2e8, type: 3}
   - {fileID: 21300000, guid: 41d87436757992144b0c47d8799a73fa, type: 3}
   - {fileID: 21300000, guid: 44e88153680b3dd458c0bdfb182084da, type: 3}
+  - {fileID: 21300000, guid: a065aa93962c6b44b8860474e7df80c2, type: 3}
+  - {fileID: 21300000, guid: 2707a153d8c8414499f273561a97960b, type: 3}
   playerNameInput: {fileID: 1463767271}
   roomCodeInput: {fileID: 244046803}
   playerStatusText: {fileID: 1874164711}
