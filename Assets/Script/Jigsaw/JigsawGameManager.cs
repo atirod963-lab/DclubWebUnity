@@ -46,6 +46,13 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     public Transform boardParent;
     public Transform pieceSpawnArea;
 
+    // 🔥 [เพิ่มใหม่] ตั้งค่าระยะขอบกันล้นจอ
+    [Header("📍 Spawn Settings")]
+    [Tooltip("ระยะห่างจากขอบจอซ้าย-ขวา (เพิ่มค่านี้ถ้าชิ้นส่วนยังชิดขอบเกินไป)")]
+    public float spawnPaddingX = 1.0f;
+    [Tooltip("ระยะกระจายตัวแนวตั้ง (แกน Y)")]
+    public float spawnSpreadY = 1.0f;
+
     [Header("Penalty Safety")]
     [Tooltip("กันไม่ให้ TriggerPenaltyReset ถูกยิงซ้ำถี่ๆ จากการเช็ค ValidateDrop ทุกเฟรมระหว่างลาก")]
     public float penaltyCooldownSeconds = 1.0f;
@@ -360,7 +367,9 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         for (int i = 0; i < totalPieces; i++)
         {
             Vector2 targetPos = CalculateTargetPosition(i, totalPieces, allSlices[0]);
-            Vector2 spawnPos = (Vector2)pieceSpawnArea.position + new Vector2(Random.Range(-3f, 3f), Random.Range(-0.5f, 0.5f));
+
+            // 🌟 [แก้ตรงนี้] ใช้ฟังก์ชันสุ่มพิกัดปลอดภัยแทนของเดิม
+            Vector2 spawnPos = GetSafeSpawnPosition();
 
             GameObject obj = Instantiate(currentPrefab, spawnPos, Quaternion.identity);
 
@@ -378,7 +387,8 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
             GameObject decoyPrefab = GetRandomDecoyPrefab(currentPrefab);
             if (decoyPrefab == null) continue;
 
-            Vector2 spawnPos = (Vector2)pieceSpawnArea.position + new Vector2(Random.Range(-3f, 3f), Random.Range(-0.5f, 0.5f));
+            // 🌟 [แก้ตรงนี้ด้วย] ใช้ฟังก์ชันสุ่มพิกัดปลอดภัยสำหรับชิ้นหลอก
+            Vector2 spawnPos = GetSafeSpawnPosition();
 
             GameObject obj = Instantiate(decoyPrefab, spawnPos, Quaternion.identity);
             JigsawPiece piece = obj.GetComponent<JigsawPiece>();
@@ -397,6 +407,26 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
             pieces.Add(piece);
         }
+    }
+
+    // 🔥 [เพิ่มใหม่] ฟังก์ชันสุ่มตำแหน่งให้อยู่ในหน้าจอเสมอ
+    Vector2 GetSafeSpawnPosition()
+    {
+        if (Camera.main == null) return pieceSpawnArea.position;
+
+        // 1. วัดขอบหน้าจอซ้าย-ขวาจริงๆ ใน World Space
+        float screenLeft = Camera.main.ViewportToWorldPoint(new Vector3(0, 0, 0)).x;
+        float screenRight = Camera.main.ViewportToWorldPoint(new Vector3(1, 0, 0)).x;
+
+        // 2. บีบขอบเข้ามาตาม spawnPaddingX ที่ตั้งไว้
+        float safeMinX = screenLeft + spawnPaddingX;
+        float safeMaxX = screenRight - spawnPaddingX;
+
+        // 3. สุ่มแกน X ในเซฟโซน และสุ่มแกน Y รอบๆ จุด pieceSpawnArea
+        float randomX = Random.Range(safeMinX, safeMaxX);
+        float randomY = pieceSpawnArea.position.y + Random.Range(-spawnSpreadY / 2f, spawnSpreadY / 2f);
+
+        return new Vector2(randomX, randomY);
     }
 
     GameObject GetRandomDecoyPrefab(GameObject excludePrefab)
@@ -440,19 +470,22 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         isPiecePlaced[pieceIndex] = true;
         piecesPlaced++;
 
+        // ทำให้ภาพไกด์บนกระดานชัดขึ้น เพื่อบอกให้รู้ว่าชิ้นนี้มีคนในทีมต่อเสร็จแล้วนะ!
         if (guidePieces.Count > pieceIndex && guidePieces[pieceIndex] != null)
         {
             guidePieces[pieceIndex].GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 1f);
             guidePieces[pieceIndex].GetComponent<SpriteRenderer>().sortingOrder = 5;
         }
 
-        foreach (var p in pieces)
+        // ❌ [จุดที่แก้ไข] คอมเมนต์ หรือ ลบ โค้ดด้านล่างนี้ทิ้งไปเลยครับ!
+        /* foreach (var p in pieces)
         {
             if (p != null && p.pieceIndex == pieceIndex)
             {
-                Destroy(p.gameObject);
+                Destroy(p.gameObject); // <--- ตัวการที่ทำให้จิ๊กซอว์หายไปจากจอเพื่อน!
             }
         }
+        */
 
         UpdateProgressToRoom();
 
