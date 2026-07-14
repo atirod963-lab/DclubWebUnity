@@ -73,7 +73,12 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
         PhotonNetwork.AutomaticallySyncScene = false;
         ShowPanel(mainMenuPanel);
 
-        if (createButton != null) createButton.onClick.AddListener(OnClickCreate);
+        if (createButton != null)
+        {
+            createButton.onClick.AddListener(OnClickCreate);
+            // 🌟 ล็อกปุ่ม Create ไว้ก่อน ห้ามกดจนกว่าจะต่อเน็ตเสร็จ
+            createButton.interactable = false;
+        }
 
         if (startGameButton != null)
         {
@@ -88,7 +93,7 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
         if (!PhotonNetwork.IsConnected)
         {
-            SetStatus("กำลังเชื่อมต่อ Photon Server...");
+            SetStatus("กำลังเชื่อมต่อเซิร์ฟเวอร์ กรุณารอสักครู่...");
             PhotonNetwork.ConnectUsingSettings();
         }
     }
@@ -155,6 +160,9 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public override void OnConnectedToMaster()
     {
+        // 🌟 ปลดล็อกปุ่ม Create ให้กดได้แล้ว
+        if (createButton != null) createButton.interactable = true;
+
         if (devFastTrackMode)
         {
             SetStatus("[Dev Mode] กำลังแอบมุดเข้าห้องเทสต์...");
@@ -167,9 +175,22 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
         }
     }
 
+    // 🌟 เพิ่มฟังก์ชันนี้เพื่ออัปเดต UI ตอนที่หลุดเข้าล็อบบี้สำเร็จ 100%
+    public override void OnJoinedLobby()
+    {
+        SetStatus("ระบบออนไลน์พร้อมใช้งานแล้ว! ✓");
+    }
+
     public void OnClickCreate()
     {
+        if (!PhotonNetwork.IsConnectedAndReady)
+        {
+            ShowWarning("");
+            return;
+        }
+
         if (playerNameInput == null || string.IsNullOrEmpty(playerNameInput.text.Trim())) { ShowWarning("กรุณาใส่ชื่อก่อนครับ!"); return; }
+
         SetupPlayerData(true);
         PhotonNetwork.CreateRoom(Random.Range(1000, 9999).ToString(), new RoomOptions { MaxPlayers = 7, IsVisible = true });
         SetStatus($"กำลังสร้างห้อง...");
@@ -178,18 +199,22 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public void OnClickJoinRoomWithTeam(string teamColor)
     {
+        if (!PhotonNetwork.InRoom && (!PhotonNetwork.IsConnectedAndReady || !PhotonNetwork.InLobby))
+        {
+            ShowWarning("");
+            return;
+        }
+
         if (playerNameInput == null || string.IsNullOrEmpty(playerNameInput.text.Trim()))
         {
             ShowWarning("กรุณาใส่ชื่อก่อนครับ!");
             return;
         }
 
-
         int teamNumber = (teamColor == "Red") ? 2 : 1;
 
         if (PhotonNetwork.InRoom)
         {
-
             int teamCount = 0;
             foreach (var p in PhotonNetwork.PlayerList)
             {
@@ -208,7 +233,6 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
             return;
         }
 
-        // 🌟 กรณีที่ 2: เพิ่งมาจากหน้าแรก กำลังจะมุดเข้าห้อง
         if (roomNameInput == null || string.IsNullOrEmpty(roomNameInput.text.Trim()))
         {
             ShowWarning("กรุณาใส่รหัสห้องด้วยครับ!");
@@ -217,7 +241,6 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
         PhotonNetwork.NickName = playerNameInput.text.Trim();
 
-        // เซ็ตข้อมูลและแปะป้ายทีมให้ทันทีก่อนเข้าห้อง
         Hashtable playerProps = new Hashtable();
         playerProps["AvatarID"] = currentAvatarIndex;
         playerProps[PROP_ROLE] = "Player";
@@ -278,7 +301,6 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
             else if (pTeam == 2) team2Count++;
         }
 
-        // 🌟 แก้ไขให้เทสต์ 1v1 ได้ พร้อมใส่ข้อความแจ้งเตือน
         if (team1Count < 1 || team2Count < 1)
         {
             ShowWarning("ต้องมีผู้เล่นอย่างน้อยฝั่งละ 1 คนครับ!");
