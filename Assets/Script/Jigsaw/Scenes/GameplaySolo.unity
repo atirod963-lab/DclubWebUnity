@@ -302,16 +302,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isSoloMode: 1
   soloPrefabs:
-  - {fileID: 5645424372977451899, guid: 2421ed3c58cbfa04a8d3960d19de52ee, type: 3}
-  - {fileID: 5947302828692013413, guid: 112cb2e2254bc174c915be5041e5d3ec, type: 3}
+  - {fileID: 1473737595610552683, guid: 9124c58aaaf6fc44c9823bcbdd8d0e72, type: 3}
+  - {fileID: 5976720964501627412, guid: 09852752d65ea7744ae77e4c6f78cb20, type: 3}
   - {fileID: 2385072349309476844, guid: dfd1d1d9f9a649240ba72bb6da6cc971, type: 3}
   multiPrefabs:
-  - {fileID: 4990891531401713886, guid: f72706aaa5798ca4c9cf20b2cccf9623, type: 3}
-  - {fileID: 436398750451611173, guid: 1f1f545d84e765a48b8edcd8d3254908, type: 3}
-  - {fileID: 2197351358352170514, guid: 890cde15972b0d24f80cfe5d6a458942, type: 3}
+  - {fileID: 7817294549216432699, guid: f6fed776227e8bf49949c798a91f4e1f, type: 3}
+  - {fileID: 8908278649460476665, guid: 20b15fb7bd9169644901887e3e72089f, type: 3}
+  - {fileID: 5710553767780495300, guid: 79aab1749e8c5794db862bac5ddc65ba, type: 3}
   myTeam: 1
   guideAlpha: 0.25
-  guideScale: 0.55
+  guideScale: 0.25
   timerText: {fileID: 2024685738}
   roundText: {fileID: 1876660853}
   countdownText: {fileID: 1346470834}
