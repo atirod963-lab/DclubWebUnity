@@ -311,7 +311,7 @@ MonoBehaviour:
   - {fileID: 5710553767780495300, guid: 79aab1749e8c5794db862bac5ddc65ba, type: 3}
   myTeam: 1
   guideAlpha: 0.25
-  guideScale: 0.25
+  guideScale: 0.55
   timerText: {fileID: 2024685738}
   roundText: {fileID: 1876660853}
   countdownText: {fileID: 1346470834}

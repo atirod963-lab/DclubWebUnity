@@ -500,9 +500,25 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         if (isSoloMode) return;
         if (PhotonNetwork.CurrentRoom == null) return;
 
-        string key = (myTeam == 1) ? PROP_TEAM1_PROGRESS : PROP_TEAM2_PROGRESS;
+        string keyProgress = (myTeam == 1) ? PROP_TEAM1_PROGRESS : PROP_TEAM2_PROGRESS;
         string progressText = $"{piecesPlaced}/{totalPieces}";
-        var props = new Hashtable { { key, progressText } };
+
+        string keyPieces = (myTeam == 1) ? "T1PiecesArray" : "T2PiecesArray";
+        string placedPieces = "";
+
+        if (isPiecePlaced != null)
+        {
+
+            for (int i = 0; i < isPiecePlaced.Length; i++)
+            {
+                if (isPiecePlaced[i]) placedPieces += i + ",";
+            }
+        }
+
+        var props = new Hashtable {
+            { keyProgress, progressText },
+            { keyPieces, placedPieces }
+        };
         PhotonNetwork.CurrentRoom.SetCustomProperties(props);
     }
 
