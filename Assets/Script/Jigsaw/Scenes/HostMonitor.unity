@@ -590,13 +590,13 @@ MonoBehaviour:
   t1RoundText: {fileID: 1701245619}
   t1ProgressText: {fileID: 1123528400}
   t1PuzzleContainer: {fileID: 770509541}
-  t2RoundText: {fileID: 0}
-  t2ProgressText: {fileID: 0}
+  t2RoundText: {fileID: 1270745503}
+  t2ProgressText: {fileID: 1977268876}
   t2PuzzleContainer: {fileID: 1237982561}
   roundSpriteSheetNames:
-  - Galactic pink Multi
-  - Galactic blue Multi
-  - Galactic green Multi
+  - Profile1
+  - Profile2
+  - Profile3
 --- !u!114 &1073936623
 MonoBehaviour:
   m_ObjectHideFlags: 0
