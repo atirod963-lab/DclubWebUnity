@@ -12,8 +12,9 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 {
     public const string PROP_TEAM1_ROUND = "T1Round";
     public const string PROP_TEAM2_ROUND = "T2Round";
-    public const string PROP_TEAM1_TIME = "T1Time";
-    public const string PROP_TEAM2_TIME = "T2Time";
+
+    public const string PROP_TEAM1_TIME = "Team1Time";
+    public const string PROP_TEAM2_TIME = "Team2Time";
 
     public const string PROP_TEAM1_PROGRESS = "T1Progress";
     public const string PROP_TEAM2_PROGRESS = "T2Progress";
@@ -46,15 +47,11 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     public Transform boardParent;
     public Transform pieceSpawnArea;
 
-    // 🔥 [เพิ่มใหม่] ตั้งค่าระยะขอบกันล้นจอ
     [Header("📍 Spawn Settings")]
-    [Tooltip("ระยะห่างจากขอบจอซ้าย-ขวา (เพิ่มค่านี้ถ้าชิ้นส่วนยังชิดขอบเกินไป)")]
     public float spawnPaddingX = 1.0f;
-    [Tooltip("ระยะกระจายตัวแนวตั้ง (แกน Y)")]
     public float spawnSpreadY = 1.0f;
 
     [Header("Penalty Safety")]
-    [Tooltip("กันไม่ให้ TriggerPenaltyReset ถูกยิงซ้ำถี่ๆ จากการเช็ค ValidateDrop ทุกเฟรมระหว่างลาก")]
     public float penaltyCooldownSeconds = 1.0f;
 
     private int currentRound = 1;
@@ -70,15 +67,19 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     private List<JigsawPiece> pieces = new List<JigsawPiece>();
     private List<GameObject> guidePieces = new List<GameObject>();
 
-
     private Sprite[] cachedSlices;
     private string cachedSheetName;
 
     public bool[] isPiecePlaced;
 
+    // 🌟 [แก้ตรงนี้] ย้ายคำสั่งมาไว้ใน Awake เพื่อให้โค้ดทำงานทันทีที่เปิดฉาก 100%
+    void Awake()
+    {
+        PhotonNetwork.AutomaticallySyncScene = true;
+    }
+
     void Start()
     {
-
         if (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Team"))
         {
             myTeam = (int)PhotonNetwork.LocalPlayer.CustomProperties["Team"];
@@ -131,6 +132,11 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
             int msUntilStart = gameStartTimestamp - PhotonNetwork.ServerTimestamp;
             StartCoroutine(CountdownAndStart(Mathf.Max(0, msUntilStart / 1000f)));
         }
+
+        if (changedProps.ContainsKey(PROP_TEAM1_TIME) || changedProps.ContainsKey(PROP_TEAM2_TIME))
+        {
+            CheckGameEndCondition();
+        }
     }
 
     IEnumerator CountdownAndStart(float seconds)
@@ -158,7 +164,6 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         totalPieces = GetTotalPieces();
         isPiecePlaced = new bool[totalPieces];
 
-        // สไปรต์ชีทอาจเปลี่ยนไปตามด่าน ต้องโหลดใหม่และรีเซ็ตแคชทุกครั้งที่ขึ้นรอบใหม่
         cachedSlices = null;
         cachedSheetName = null;
         LoadSlicesForCurrentPrefab();
@@ -206,7 +211,6 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         return 0;
     }
 
-    // โหลดสไปรต์ชีทของ prefab ปัจจุบันเพียงครั้งเดียวต่อรอบ แล้ว cache เอาไว้ใช้ซ้ำ
     Sprite[] LoadSlicesForCurrentPrefab()
     {
         GameObject currentPrefab = GetCurrentPrefab();
@@ -229,7 +233,6 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         float pieceHeight = sliceSprite.bounds.size.y * guideScale;
 
         int cols = 3;
-        // ใช้ CeilToInt กันไว้เผื่อ totalPieces ไม่ลงตัวพอดีกับ cols ในอนาคต
         int rows = Mathf.CeilToInt(totalPieces / (float)cols);
 
         int col = index % cols;
@@ -259,7 +262,6 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
                 snappedPos = slotPos;
                 if (i == pieceIndex)
                 {
-                    // 🌟 เช็คว่าช่องนี้มีคนวางไปหรือยัง ถ้ามีคนวางแล้วให้ยิงคำสั่ง Penalty
                     if (isPiecePlaced != null && pieceIndex < isPiecePlaced.Length && isPiecePlaced[pieceIndex])
                     {
                         TriggerPenaltyReset();
@@ -285,7 +287,6 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         }
         else
         {
-            // 🌟 ยิงคำสั่งไปหาทุกคน พร้อมแนบหมายเลขทีมของเรา (myTeam) ไปด้วย
             photonView.RPC("RPC_PenaltyReset", RpcTarget.All, myTeam);
         }
     }
@@ -299,12 +300,10 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     [PunRPC]
     void RPC_PenaltyReset(int penalizedTeam)
     {
-        // 🌟 ป้องกันไม่ให้ทีมอื่นโดนลูกหลง: ถ้ารหัสทีมที่โดนลงโทษ ไม่ใช่ทีมเรา ให้ข้ามคำสั่งนี้ไปเลย!
         if (!isSoloMode && myTeam != penalizedTeam) return;
 
         ShowConflictEffect(boardParent.position);
 
-        // ทำลายชิ้นส่วนและเริ่มรอบเดิมใหม่เพื่อล้างค่ากระดานทั้งหมด
         DestroyAllPieces();
         BeginRound(currentRound);
 
@@ -367,8 +366,6 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         for (int i = 0; i < totalPieces; i++)
         {
             Vector2 targetPos = CalculateTargetPosition(i, totalPieces, allSlices[0]);
-
-            // 🌟 [แก้ตรงนี้] ใช้ฟังก์ชันสุ่มพิกัดปลอดภัยแทนของเดิม
             Vector2 spawnPos = GetSafeSpawnPosition();
 
             GameObject obj = Instantiate(currentPrefab, spawnPos, Quaternion.identity);
@@ -387,7 +384,6 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
             GameObject decoyPrefab = GetRandomDecoyPrefab(currentPrefab);
             if (decoyPrefab == null) continue;
 
-            // 🌟 [แก้ตรงนี้ด้วย] ใช้ฟังก์ชันสุ่มพิกัดปลอดภัยสำหรับชิ้นหลอก
             Vector2 spawnPos = GetSafeSpawnPosition();
 
             GameObject obj = Instantiate(decoyPrefab, spawnPos, Quaternion.identity);
@@ -409,20 +405,16 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         }
     }
 
-    // 🔥 [เพิ่มใหม่] ฟังก์ชันสุ่มตำแหน่งให้อยู่ในหน้าจอเสมอ
     Vector2 GetSafeSpawnPosition()
     {
         if (Camera.main == null) return pieceSpawnArea.position;
 
-        // 1. วัดขอบหน้าจอซ้าย-ขวาจริงๆ ใน World Space
         float screenLeft = Camera.main.ViewportToWorldPoint(new Vector3(0, 0, 0)).x;
         float screenRight = Camera.main.ViewportToWorldPoint(new Vector3(1, 0, 0)).x;
 
-        // 2. บีบขอบเข้ามาตาม spawnPaddingX ที่ตั้งไว้
         float safeMinX = screenLeft + spawnPaddingX;
         float safeMaxX = screenRight - spawnPaddingX;
 
-        // 3. สุ่มแกน X ในเซฟโซน และสุ่มแกน Y รอบๆ จุด pieceSpawnArea
         float randomX = Random.Range(safeMinX, safeMaxX);
         float randomY = pieceSpawnArea.position.y + Random.Range(-spawnSpreadY / 2f, spawnSpreadY / 2f);
 
@@ -457,8 +449,6 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     [PunRPC]
     void RPC_UpdateBoard(int pieceIndex, int teamWhoScored)
     {
-        Debug.Log($"[Network] ได้รับคำสั่งอัปเดตกระดาน: ชิ้นที่ {pieceIndex} จากทีม {teamWhoScored} | ทีมของเราคือ {myTeam}");
-
         if (!isSoloMode && myTeam != teamWhoScored) return;
 
         if (isPiecePlaced[pieceIndex])
@@ -470,22 +460,11 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         isPiecePlaced[pieceIndex] = true;
         piecesPlaced++;
 
-        // ทำให้ภาพไกด์บนกระดานชัดขึ้น เพื่อบอกให้รู้ว่าชิ้นนี้มีคนในทีมต่อเสร็จแล้วนะ!
         if (guidePieces.Count > pieceIndex && guidePieces[pieceIndex] != null)
         {
             guidePieces[pieceIndex].GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 1f);
             guidePieces[pieceIndex].GetComponent<SpriteRenderer>().sortingOrder = 5;
         }
-
-        // ❌ [จุดที่แก้ไข] คอมเมนต์ หรือ ลบ โค้ดด้านล่างนี้ทิ้งไปเลยครับ!
-        /* foreach (var p in pieces)
-        {
-            if (p != null && p.pieceIndex == pieceIndex)
-            {
-                Destroy(p.gameObject); // <--- ตัวการที่ทำให้จิ๊กซอว์หายไปจากจอเพื่อน!
-            }
-        }
-        */
 
         UpdateProgressToRoom();
 
@@ -508,7 +487,6 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
         if (isPiecePlaced != null)
         {
-
             for (int i = 0; i < isPiecePlaced.Length; i++)
             {
                 if (isPiecePlaced[i]) placedPieces += i + ",";
@@ -545,16 +523,52 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
         if (PhotonNetwork.CurrentRoom != null)
         {
-            string key = (myTeam == 1) ? PROP_TEAM1_PROGRESS : PROP_TEAM2_PROGRESS;
-            var props = new Hashtable { { key, "FINISH!" } };
+            string progKey = (myTeam == 1) ? PROP_TEAM1_PROGRESS : PROP_TEAM2_PROGRESS;
+            string timeKey = (myTeam == 1) ? PROP_TEAM1_TIME : PROP_TEAM2_TIME;
+
+            var props = new Hashtable {
+                { progKey, "FINISH!" },
+                { timeKey, elapsedTime }
+            };
+
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);
         }
 
-        SaveTimeToRoom(elapsedTime);
-        StartCoroutine(LoadSummaryScene());
+        if (countdownText != null)
+        {
+            countdownText.gameObject.SetActive(true);
+            countdownText.text = "จบเกม! กำลังสรุปผล...";
+        }
+
+        if (isSoloMode)
+        {
+            StartCoroutine(LoadSummaryScene());
+        }
+        else
+        {
+            CheckGameEndCondition();
+        }
     }
 
-    IEnumerator LoadSummaryScene() { yield return new WaitForSeconds(2f); PhotonNetwork.LoadLevel("SummaryScene"); }
+    void CheckGameEndCondition()
+    {
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        var props = PhotonNetwork.CurrentRoom.CustomProperties;
+        bool t1Done = props.ContainsKey(PROP_TEAM1_TIME);
+        bool t2Done = props.ContainsKey(PROP_TEAM2_TIME);
+
+        if (t1Done || t2Done)
+        {
+            PhotonNetwork.LoadLevel("SummaryScene");
+        }
+    }
+
+    IEnumerator LoadSummaryScene()
+    {
+        yield return new WaitForSeconds(2f);
+        PhotonNetwork.LoadLevel("SummaryScene");
+    }
 
     void DestroyAllPieces()
     {
@@ -574,13 +588,10 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         PhotonNetwork.CurrentRoom.SetCustomProperties(props);
     }
 
-    void SaveTimeToRoom(float time)
+    void UpdateTimerUI()
     {
-        if (PhotonNetwork.CurrentRoom == null) return;
-        string key = (myTeam == 1) ? PROP_TEAM1_TIME : PROP_TEAM2_TIME;
-        var props = new Hashtable { { key, time } };
-        PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+        int min = (int)(elapsedTime / 60);
+        int sec = (int)(elapsedTime % 60);
+        timerText.text = $"{min:00}:{sec:00}";
     }
-
-    void UpdateTimerUI() { int min = (int)(elapsedTime / 60); int sec = (int)(elapsedTime % 60); timerText.text = $"{min:00}:{sec:00}"; }
 }

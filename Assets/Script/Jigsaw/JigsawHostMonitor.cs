@@ -32,6 +32,8 @@ public class JigsawHostMonitor : MonoBehaviourPunCallbacks
 
     void Start()
     {
+        PhotonNetwork.AutomaticallySyncScene = true;
+
         if (t1PuzzleContainer != null && t1PuzzleContainer.GetComponent<Image>() != null)
             t1PuzzleContainer.GetComponent<Image>().enabled = false;
         if (t2PuzzleContainer != null && t2PuzzleContainer.GetComponent<Image>() != null)
@@ -58,7 +60,7 @@ public class JigsawHostMonitor : MonoBehaviourPunCallbacks
                 GeneratePuzzleGrid(t1PuzzleContainer, t1PieceImages, round);
             }
         }
-        if (props.ContainsKey("T1PiecesArray")) 
+        if (props.ContainsKey("T1PiecesArray"))
         {
             RevealPieces(t1PieceImages, props["T1PiecesArray"].ToString());
         }
@@ -66,6 +68,7 @@ public class JigsawHostMonitor : MonoBehaviourPunCallbacks
         {
             string p = props["T1Progress"].ToString();
             if (t1ProgressText != null) t1ProgressText.text = p;
+
             if (p == "FINISH!") GoToSummaryScene();
         }
 
@@ -88,6 +91,7 @@ public class JigsawHostMonitor : MonoBehaviourPunCallbacks
         {
             string p = props["T2Progress"].ToString();
             if (t2ProgressText != null) t2ProgressText.text = p;
+
             if (p == "FINISH!") GoToSummaryScene();
         }
     }
@@ -134,6 +138,11 @@ public class JigsawHostMonitor : MonoBehaviourPunCallbacks
 
     void RevealPieces(List<Image> pieceList, string placedPiecesStr)
     {
+        foreach (var img in pieceList)
+        {
+            if (img != null) img.color = new Color(0, 0, 0, 0.2f);
+        }
+
         if (string.IsNullOrEmpty(placedPiecesStr)) return;
 
         string[] indices = placedPiecesStr.Split(',');
@@ -149,5 +158,11 @@ public class JigsawHostMonitor : MonoBehaviourPunCallbacks
         }
     }
 
-    void GoToSummaryScene() { if (PhotonNetwork.IsMasterClient) PhotonNetwork.LoadLevel("SummaryScene"); }
+    void GoToSummaryScene()
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            PhotonNetwork.LoadLevel("SummaryScene");
+        }
+    }
 }

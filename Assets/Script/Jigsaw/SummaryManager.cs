@@ -97,23 +97,30 @@ public class SummaryManager : MonoBehaviourPunCallbacks
 
         foreach (var p in PhotonNetwork.PlayerList)
         {
+            // 🌟 [เพิ่มใหม่] ถ้าคนนี้คือ MasterClient (คนสร้างห้อง/Host) ให้ข้ามไปเลย ไม่ต้องเอามาโชว์
+            if (p.IsMasterClient) continue;
+
             int playerTeam = p.CustomProperties.ContainsKey("Team") ? (int)p.CustomProperties["Team"] : -1;
             int avatarID = p.CustomProperties.ContainsKey("AvatarID") ? (int)p.CustomProperties["AvatarID"] : 0;
 
-            if (playerTeam == winningTeam || (winningTeam == 0 && playerTeam == 1))
+            // 🌟 [เพิ่มใหม่] กรองให้โชว์เฉพาะคนที่อยู่ทีม 1 หรือ 2 เท่านั้น
+            if (playerTeam == 1 || playerTeam == 2)
             {
-                if (winIndex < winnerSlots.Length)
+                if (playerTeam == winningTeam || (winningTeam == 0 && playerTeam == 1))
                 {
-                    SetupSlot(winnerSlots[winIndex], p.NickName, avatarID);
-                    winIndex++;
+                    if (winIndex < winnerSlots.Length)
+                    {
+                        SetupSlot(winnerSlots[winIndex], p.NickName, avatarID);
+                        winIndex++;
+                    }
                 }
-            }
-            else if (playerTeam != -1)
-            {
-                if (loseIndex < loserSlots.Length)
+                else
                 {
-                    SetupSlot(loserSlots[loseIndex], p.NickName, avatarID);
-                    loseIndex++;
+                    if (loseIndex < loserSlots.Length)
+                    {
+                        SetupSlot(loserSlots[loseIndex], p.NickName, avatarID);
+                        loseIndex++;
+                    }
                 }
             }
         }
