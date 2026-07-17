@@ -867,9 +867,17 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1303816249}
     - target: {fileID: 634797403609904248, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
+      propertyPath: plusScorePrefab
+      value: 
+      objectReference: {fileID: 3569690972751331721, guid: ad06b674e82f4f646ad4cb8cafc39d57, type: 3}
+    - target: {fileID: 634797403609904248, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
       propertyPath: isBasketballMode
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 634797403609904248, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
+      propertyPath: minusScorePrefab
+      value: 
+      objectReference: {fileID: 1446307943231836470, guid: d89cff9de6f61794c84d300cef5cb085, type: 3}
     - target: {fileID: 634797403609904248, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
       propertyPath: redTeamPopUps.Array.size
       value: 1
