@@ -28,6 +28,11 @@ public class GameManager : MonoBehaviourPunCallbacks
     public GameObject[] greenTeamPopUps;
     public GameObject[] redTeamPopUps;
 
+    // 🌟 [เพิ่มช่องรับ Prefab ตัวเลขเด้งบนหน้า Host]
+    [Header("Floating Score Prefabs (Host)")]
+    public GameObject plusScorePrefab;
+    public GameObject minusScorePrefab;
+
     private int currentGreenScore = 0;
     private int currentRedScore = 0;
 
@@ -147,6 +152,25 @@ public class GameManager : MonoBehaviourPunCallbacks
             }
         }
 
+        // 🌟 [เพิ่มระบบเสกตัวเลข +1 บนหน้า Host]
+        if (isHost && plusScorePrefab != null && Camera.main != null)
+        {
+            // สุ่มเกิดฝั่งซ้าย (0.1 ถึง 0.4) สำหรับทีมเขียว และฝั่งขวา (0.6 ถึง 0.9) สำหรับทีมแดง
+            float randomX = (team == "Green") ? Random.Range(0.1f, 0.4f) : Random.Range(0.6f, 0.9f);
+            float randomY = Random.Range(0.3f, 0.7f);
+
+            // แปลงพิกัดจากหน้าจอให้เป็นพิกัดโลก (World Space)
+            Vector3 spawnPos = Camera.main.ViewportToWorldPoint(new Vector3(randomX, randomY, Mathf.Abs(Camera.main.transform.position.z)));
+
+            GameObject floatingText = Instantiate(plusScorePrefab, spawnPos, Quaternion.identity);
+            TextMeshPro tmpro = floatingText.GetComponent<TextMeshPro>();
+            if (tmpro != null)
+            {
+                // เปลี่ยนสีตามทีม
+                tmpro.color = (team == "Green") ? Color.green : Color.red;
+            }
+        }
+
         UpdateScoreUI();
         SyncScoreToLocalTouchManager();
 
@@ -199,6 +223,25 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             currentRedScore--;
             StartCoroutine(ScorePopTrick(redScoreText, Color.gray));
+        }
+
+        // 🌟 [เพิ่มระบบเสกตัวเลข -1 บนหน้า Host]
+        if (isHost && minusScorePrefab != null && Camera.main != null)
+        {
+            // สุ่มเกิดฝั่งซ้าย (0.1 ถึง 0.4) สำหรับทีมเขียว และฝั่งขวา (0.6 ถึง 0.9) สำหรับทีมแดง
+            float randomX = (team == "Green") ? Random.Range(0.1f, 0.4f) : Random.Range(0.6f, 0.9f);
+            float randomY = Random.Range(0.3f, 0.7f);
+
+            // แปลงพิกัดจากหน้าจอให้เป็นพิกัดโลก (World Space)
+            Vector3 spawnPos = Camera.main.ViewportToWorldPoint(new Vector3(randomX, randomY, Mathf.Abs(Camera.main.transform.position.z)));
+
+            GameObject floatingText = Instantiate(minusScorePrefab, spawnPos, Quaternion.identity);
+            TextMeshPro tmpro = floatingText.GetComponent<TextMeshPro>();
+            if (tmpro != null)
+            {
+                // เปลี่ยนสีตามทีม
+                tmpro.color = (team == "Green") ? Color.green : Color.red;
+            }
         }
 
         UpdateScoreUI();
