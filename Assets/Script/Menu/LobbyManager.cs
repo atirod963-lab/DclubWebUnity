@@ -79,19 +79,9 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
         PhotonNetwork.JoinLobby();
     }
 
-    bool CheckNameInput()
+    IEnumerator ShowWarningRoutine(string msg)
     {
-        if (playerNameInput == null || string.IsNullOrWhiteSpace(playerNameInput.text))
-        {
-            if (warningText != null) StartCoroutine(ShowWarningRoutine());
-            return false;
-        }
-        PhotonNetwork.NickName = playerNameInput.text.Trim();
-        return true;
-    }
-
-    IEnumerator ShowWarningRoutine()
-    {
+        warningText.text = msg;
         warningText.gameObject.SetActive(true);
         yield return new WaitForSeconds(2f);
         warningText.gameObject.SetActive(false);
@@ -123,7 +113,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public void OnClickCreateHostRoom()
     {
-        if (!CheckNameInput()) return;
+        string pName = (playerNameInput != null && !string.IsNullOrWhiteSpace(playerNameInput.text)) ? playerNameInput.text.Trim() : "Host";
+        PhotonNetwork.NickName = pName;
 
         isHost = true;
         string randomCode = Random.Range(1000, 10000).ToString();
@@ -134,8 +125,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public void OnClickGoToJoin()
     {
-        if (!CheckNameInput()) return;
-
         isHost = false;
         ShowPanel(playerJoinPanel);
         if (playerStatusText != null) playerStatusText.text = "";
@@ -151,6 +140,9 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
             return;
         }
 
+        string pName = (playerNameInput != null && !string.IsNullOrWhiteSpace(playerNameInput.text)) ? playerNameInput.text.Trim() : "Player_Temp";
+        PhotonNetwork.NickName = pName;
+
         Hashtable props = new Hashtable {
             { "Team", teamName },
             { "Role", "Player" },
@@ -164,9 +156,9 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public void OnClickSinglePlayer()
     {
-        if (!CheckNameInput()) return;
+        string pName = (playerNameInput != null && !string.IsNullOrWhiteSpace(playerNameInput.text)) ? playerNameInput.text.Trim() : "Player 1";
 
-        PlayerPrefs.SetString("OfflineName", playerNameInput.text.Trim());
+        PlayerPrefs.SetString("OfflineName", pName);
         PlayerPrefs.SetInt("OfflineAvatar", selectedAvatarIndex);
         PlayerPrefs.Save();
 
@@ -194,6 +186,20 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public override void OnJoinedRoom()
     {
+        if (!isHost && PhotonNetwork.NickName == "Player_Temp")
+        {
+            int playerIndex = 0;
+            foreach (Player p in PhotonNetwork.PlayerList)
+            {
+                if (p.CustomProperties.ContainsKey("Role") && (string)p.CustomProperties["Role"] == "Spectator") continue;
+                if (p.ActorNumber <= PhotonNetwork.LocalPlayer.ActorNumber) playerIndex++;
+            }
+            PhotonNetwork.NickName = "Player " + playerIndex;
+
+            Hashtable updateProp = new Hashtable { { "NameUpdated", true } };
+            PhotonNetwork.LocalPlayer.SetCustomProperties(updateProp);
+        }
+
         Hashtable props = new Hashtable();
 
         if (isHost)
@@ -262,6 +268,11 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
         }
     }
 
+    public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
+    {
+        UpdateHostUI();
+    }
+
     public void OnClickKickGreenPlayer()
     {
         if (!PhotonNetwork.IsMasterClient) return;
@@ -306,7 +317,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
             if (PhotonNetwork.LocalPlayer.ActorNumber == kickedActorNr)
             {
                 if (playerStatusText != null) playerStatusText.text = "คุณถูกเตะออกจากห้องโดยโฮสต์!";
-                PhotonNetwork.LeaveRoom(); 
+                PhotonNetwork.LeaveRoom();
             }
         }
     }
@@ -367,6 +378,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
         if (playerJoinPanel != null) playerJoinPanel.SetActive(false);
         if (activePanel != null) activePanel.SetActive(true);
     }
+
     public void OnClickBackToMain()
     {
         if (PhotonNetwork.InRoom)

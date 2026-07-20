@@ -30,7 +30,7 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     [Header("UI Buttons")]
     public Button createButton;
-    public Button joinButton; // ปุ่มนี้อาจจะไม่ได้ใช้แล้วถ้าใช้ JoinGreen/Red เข้าห้องแทน
+    public Button joinButton;
     public Button startGameButton;
     public Button singlePlayerButton;
 
@@ -76,7 +76,6 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
         if (createButton != null)
         {
             createButton.onClick.AddListener(OnClickCreate);
-            // 🌟 ล็อกปุ่ม Create ไว้ก่อน ห้ามกดจนกว่าจะต่อเน็ตเสร็จ
             createButton.interactable = false;
         }
 
@@ -147,8 +146,8 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
     {
         if (playerNameInput != null && !string.IsNullOrEmpty(playerNameInput.text.Trim()))
             PhotonNetwork.NickName = playerNameInput.text.Trim();
-        else if (string.IsNullOrEmpty(PhotonNetwork.NickName))
-            PhotonNetwork.NickName = (isHost ? "Host_" : "Player_") + Random.Range(1000, 9999);
+        else
+            PhotonNetwork.NickName = isHost ? "Host" : "Player_Temp";
 
         Hashtable playerProps = new Hashtable();
         playerProps["AvatarID"] = currentAvatarIndex;
@@ -160,7 +159,6 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public override void OnConnectedToMaster()
     {
-        // 🌟 ปลดล็อกปุ่ม Create ให้กดได้แล้ว
         if (createButton != null) createButton.interactable = true;
 
         if (devFastTrackMode)
@@ -175,7 +173,6 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
         }
     }
 
-    // 🌟 เพิ่มฟังก์ชันนี้เพื่ออัปเดต UI ตอนที่หลุดเข้าล็อบบี้สำเร็จ 100%
     public override void OnJoinedLobby()
     {
         SetStatus("ระบบออนไลน์พร้อมใช้งานแล้ว! ✓");
@@ -189,25 +186,16 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
             return;
         }
 
-        if (playerNameInput == null || string.IsNullOrEmpty(playerNameInput.text.Trim())) { ShowWarning("กรุณาใส่ชื่อก่อนครับ!"); return; }
-
         SetupPlayerData(true);
         PhotonNetwork.CreateRoom(Random.Range(1000, 9999).ToString(), new RoomOptions { MaxPlayers = 7, IsVisible = true });
         SetStatus($"กำลังสร้างห้อง...");
     }
-
 
     public void OnClickJoinRoomWithTeam(string teamColor)
     {
         if (!PhotonNetwork.InRoom && (!PhotonNetwork.IsConnectedAndReady || !PhotonNetwork.InLobby))
         {
             ShowWarning("");
-            return;
-        }
-
-        if (playerNameInput == null || string.IsNullOrEmpty(playerNameInput.text.Trim()))
-        {
-            ShowWarning("กรุณาใส่ชื่อก่อนครับ!");
             return;
         }
 
@@ -239,7 +227,9 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
             return;
         }
 
-        PhotonNetwork.NickName = playerNameInput.text.Trim();
+        string pName = playerNameInput != null ? playerNameInput.text.Trim() : "";
+        if (string.IsNullOrEmpty(pName)) pName = "Player_Temp";
+        PhotonNetwork.NickName = pName;
 
         Hashtable playerProps = new Hashtable();
         playerProps["AvatarID"] = currentAvatarIndex;
@@ -253,8 +243,8 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public void OnClickSinglePlayer()
     {
-        if (playerNameInput == null || string.IsNullOrEmpty(playerNameInput.text.Trim())) { ShowWarning("กรุณาใส่ชื่อก่อนครับ!"); return; }
-        PlayerPrefs.SetString("OfflineName", playerNameInput.text.Trim());
+        string pName = playerNameInput != null && !string.IsNullOrEmpty(playerNameInput.text.Trim()) ? playerNameInput.text.Trim() : "Player 1";
+        PlayerPrefs.SetString("OfflineName", pName);
         PlayerPrefs.SetInt("OfflineAvatar", currentAvatarIndex);
         PlayerPrefs.Save();
         SceneManager.LoadScene(soloSceneName);
@@ -262,6 +252,22 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public override void OnJoinedRoom()
     {
+        if (PhotonNetwork.NickName == "Player_Temp")
+        {
+            int playerIndex = 0;
+            foreach (var p in PhotonNetwork.PlayerList)
+            {
+                if (p.CustomProperties.ContainsKey(PROP_ROLE) && (string)p.CustomProperties[PROP_ROLE] == "Spectator") continue;
+                if (p.ActorNumber <= PhotonNetwork.LocalPlayer.ActorNumber) playerIndex++;
+            }
+
+            string finalName = "Player " + playerIndex;
+            PhotonNetwork.NickName = finalName;
+
+            Hashtable nameProp = new Hashtable { { "RealName", finalName } };
+            PhotonNetwork.LocalPlayer.SetCustomProperties(nameProp);
+        }
+
         SetStatus($"เข้าห้อง {PhotonNetwork.CurrentRoom.Name} แล้ว");
         if (devFastTrackMode && devTestSolo) { PhotonNetwork.LoadLevel(soloSceneName); return; }
 
@@ -341,7 +347,7 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
     {
-        if (changedProps.ContainsKey(PROP_TEAM) || changedProps.ContainsKey("AvatarID"))
+        if (changedProps.ContainsKey(PROP_TEAM) || changedProps.ContainsKey("AvatarID") || changedProps.ContainsKey("RealName"))
         {
             UpdatePlayerList();
         }
@@ -377,7 +383,10 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
                 slotParents[targetSlot].SetActive(true);
 
                 if (slotNames.Length > targetSlot && slotNames[targetSlot] != null)
-                    slotNames[targetSlot].text = p.NickName;
+                {
+                    string displayName = p.CustomProperties.ContainsKey("RealName") ? (string)p.CustomProperties["RealName"] : p.NickName;
+                    slotNames[targetSlot].text = displayName;
+                }
 
                 if (slotAvatars.Length > targetSlot && slotAvatars[targetSlot] != null)
                 {
