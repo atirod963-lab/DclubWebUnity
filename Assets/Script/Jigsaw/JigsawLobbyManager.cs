@@ -180,6 +180,8 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public void OnClickCreate()
     {
+        if (PhotonNetwork.NetworkClientState == ClientState.Joining) return;
+
         if (!PhotonNetwork.IsConnectedAndReady)
         {
             ShowWarning("");
@@ -193,6 +195,8 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public void OnClickJoinRoomWithTeam(string teamColor)
     {
+        if (PhotonNetwork.NetworkClientState == ClientState.Joining || PhotonNetwork.NetworkClientState == ClientState.JoiningLobby) return;
+
         if (!PhotonNetwork.InRoom && (!PhotonNetwork.IsConnectedAndReady || !PhotonNetwork.InLobby))
         {
             ShowWarning("");
@@ -252,6 +256,31 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public override void OnJoinedRoom()
     {
+        bool isHost = (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey(PROP_ROLE) && (string)PhotonNetwork.LocalPlayer.CustomProperties[PROP_ROLE] == "Spectator");
+
+        if (!isHost)
+        {
+            int myTeam = PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey(PROP_TEAM) ? (int)PhotonNetwork.LocalPlayer.CustomProperties[PROP_TEAM] : 1;
+            int teamCount = 0;
+
+            foreach (var p in PhotonNetwork.PlayerList)
+            {
+                if (p.ActorNumber != PhotonNetwork.LocalPlayer.ActorNumber &&
+                    p.CustomProperties.ContainsKey(PROP_ROLE) && (string)p.CustomProperties[PROP_ROLE] == "Player" &&
+                    p.CustomProperties.ContainsKey(PROP_TEAM) && (int)p.CustomProperties[PROP_TEAM] == myTeam)
+                {
+                    teamCount++;
+                }
+            }
+
+            if (teamCount >= 3)
+            {
+                PhotonNetwork.LeaveRoom();
+                ShowWarning($"ทีม {myTeam} เต็มแล้วครับ! กรุณาเข้าใหม่แล้วเลือกทีมอื่น");
+                return;
+            }
+        }
+
         if (PhotonNetwork.NickName == "Player_Temp")
         {
             int playerIndex = 0;
@@ -270,8 +299,6 @@ public class JigsawLobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
         SetStatus($"เข้าห้อง {PhotonNetwork.CurrentRoom.Name} แล้ว");
         if (devFastTrackMode && devTestSolo) { PhotonNetwork.LoadLevel(soloSceneName); return; }
-
-        bool isHost = (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey(PROP_ROLE) && (string)PhotonNetwork.LocalPlayer.CustomProperties[PROP_ROLE] == "Spectator");
 
         if (isHost)
         {

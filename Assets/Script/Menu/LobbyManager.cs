@@ -42,9 +42,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
     private int selectedAvatarIndex = 0;
     private bool isHost = false;
 
-
     private const byte KICK_EVENT_CODE = 199;
-
 
     public override void OnEnable()
     {
@@ -57,7 +55,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
         base.OnDisable();
         PhotonNetwork.RemoveCallbackTarget(this);
     }
-
 
     void Start()
     {
@@ -83,8 +80,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
     {
         warningText.text = msg;
         warningText.gameObject.SetActive(true);
-        yield return new WaitForSeconds(2f);
-        warningText.gameObject.SetActive(false);
+        yield return new WaitForSeconds(2.5f);
+        if (warningText != null) warningText.gameObject.SetActive(false);
     }
 
     public void OnClickNextAvatar()
@@ -113,6 +110,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public void OnClickCreateHostRoom()
     {
+        if (PhotonNetwork.NetworkClientState == ClientState.Joining) return;
+
         string pName = (playerNameInput != null && !string.IsNullOrWhiteSpace(playerNameInput.text)) ? playerNameInput.text.Trim() : "Host";
         PhotonNetwork.NickName = pName;
 
@@ -132,6 +131,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public void OnClickJoinRoomWithTeam(string teamName)
     {
+        if (PhotonNetwork.NetworkClientState == ClientState.Joining || PhotonNetwork.NetworkClientState == ClientState.JoiningLobby) return;
+
         string code = roomCodeInput.text.Trim();
 
         if (string.IsNullOrEmpty(code))
@@ -157,13 +158,11 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
     public void OnClickSinglePlayer()
     {
         string pName = (playerNameInput != null && !string.IsNullOrWhiteSpace(playerNameInput.text)) ? playerNameInput.text.Trim() : "Player 1";
-
         PlayerPrefs.SetString("OfflineName", pName);
         PlayerPrefs.SetInt("OfflineAvatar", selectedAvatarIndex);
         PlayerPrefs.Save();
 
         if (TouchManager2D.Instance != null) TouchManager2D.Instance.score = 0;
-
         SceneManager.LoadScene("MG1_1");
     }
 
@@ -233,9 +232,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
             if (currentTeamMembers >= maxPlayersPerTeam)
             {
-                if (playerStatusText != null)
-                    playerStatusText.text = $"ทีม {myTeam} เต็มแล้ว! (รับได้ {maxPlayersPerTeam} คน) กรุณาเลือกสีอื่นครับ";
-
+                StartCoroutine(ShowWarningRoutine($"ทีม {myTeam} เต็มแล้ว! กรุณาเลือกสีอื่นครับ"));
                 PhotonNetwork.LeaveRoom();
                 return;
             }
@@ -276,7 +273,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
     public void OnClickKickGreenPlayer()
     {
         if (!PhotonNetwork.IsMasterClient) return;
-
         foreach (Player p in PhotonNetwork.PlayerList)
         {
             if (p.CustomProperties.ContainsKey("Team") && (string)p.CustomProperties["Team"] == "Green")
@@ -290,7 +286,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IOnEventCallback
     public void OnClickKickRedPlayer()
     {
         if (!PhotonNetwork.IsMasterClient) return;
-
         foreach (Player p in PhotonNetwork.PlayerList)
         {
             if (p.CustomProperties.ContainsKey("Team") && (string)p.CustomProperties["Team"] == "Red")
