@@ -18,6 +18,10 @@ public class JigsawPiece : MonoBehaviour
     public Color grabbedColor = Color.white;
     public Color defaultColor = Color.white;
 
+    [Header("UI ป็อบอัพนิ้วบัง")]
+    [Tooltip("ระยะความสูงของป็อบอัพที่จะลอยขึ้นมาเหนือจุดที่กด")]
+    public float popupOffsetY = 5f;
+
     [Header("สถานะ")]
     public bool isPlaced = false;
     public bool isGrabbed = false;
@@ -28,6 +32,9 @@ public class JigsawPiece : MonoBehaviour
     private bool isDragging = false;
     private JigsawGameManager gameManager;
     private int originalSortingOrder;
+
+    // ตัวแปรสำหรับเก็บออบเจกต์ป็อบอัพ
+    private GameObject popupIndicator;
 
     public static JigsawPiece currentlyDraggingPiece = null;
 
@@ -120,8 +127,25 @@ public class JigsawPiece : MonoBehaviour
         isDragging = true;
         isGrabbed = true;
         currentlyDraggingPiece = this;
+
+        // หรี่สีชิ้นส่วนตัวจริงที่อยู่ใต้นิ้วลงเล็กน้อย
         sr.sortingOrder = 999;
         sr.color = grabbedColor;
+
+        // 🌟 สร้าง Popup ลอยเหนือชิ้นส่วน
+        if (popupIndicator == null)
+        {
+            popupIndicator = new GameObject("PopupIndicator");
+            popupIndicator.transform.SetParent(transform); // ให้มันวิ่งตามชิ้นส่วนหลัก
+            popupIndicator.transform.localPosition = new Vector3(0, popupOffsetY, 0); // ยกขึ้นแนวตั้ง
+            popupIndicator.transform.localScale = Vector3.one * 1.2f; // ขยายขนาดให้มองเห็นชัดขึ้น
+
+            // ก๊อปปี้ภาพมาใส่ใน Popup
+            SpriteRenderer popupSr = popupIndicator.AddComponent<SpriteRenderer>();
+            popupSr.sprite = sr.sprite;
+            popupSr.sortingOrder = 1000; // ให้อยู่บนสุดเสมอ
+            popupSr.color = Color.white;
+        }
     }
 
     void TrySnap()
@@ -131,6 +155,13 @@ public class JigsawPiece : MonoBehaviour
         currentlyDraggingPiece = null;
         sr.sortingOrder = originalSortingOrder;
         sr.color = defaultColor;
+
+        // 🌟 ทำลาย Popup ทิ้งทันทีเมื่อปล่อยมือ
+        if (popupIndicator != null)
+        {
+            Destroy(popupIndicator);
+            popupIndicator = null;
+        }
 
         bool isDecoy = (targetPosition.x > 9000f);
         int checkIndex = isDecoy ? -1 : pieceIndex;

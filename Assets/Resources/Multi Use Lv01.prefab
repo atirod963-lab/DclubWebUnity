@@ -195,5 +195,6 @@ MonoBehaviour:
   snapDistance: 0.5
   grabbedColor: {r: 1, g: 1, b: 1, a: 1}
   defaultColor: {r: 1, g: 1, b: 1, a: 1}
+  popupOffsetY: 5
   isPlaced: 0
   isGrabbed: 0

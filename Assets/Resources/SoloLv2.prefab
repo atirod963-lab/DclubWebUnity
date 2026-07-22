@@ -193,7 +193,8 @@ MonoBehaviour:
   originalPosition: {x: 0, y: 0}
   targetPosition: {x: 0, y: 0}
   snapDistance: 0.5
-  teamRedColor: {r: 1, g: 0, b: 0, a: 1}
+  grabbedColor: {r: 1, g: 1, b: 1, a: 1}
   defaultColor: {r: 1, g: 1, b: 1, a: 1}
+  popupOffsetY: 5
   isPlaced: 0
   isGrabbed: 0
