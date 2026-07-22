@@ -286,6 +286,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: BG_Jigsaw_Game Play
       objectReference: {fileID: 0}
+    - target: {fileID: 4564417792089883808, guid: b61fbb9440b9e1042b4093a218cb4331, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.39
+      objectReference: {fileID: 0}
+    - target: {fileID: 4564417792089883808, guid: b61fbb9440b9e1042b4093a218cb4331, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.39
+      objectReference: {fileID: 0}
+    - target: {fileID: 4564417792089883808, guid: b61fbb9440b9e1042b4093a218cb4331, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.39
+      objectReference: {fileID: 0}
+    - target: {fileID: 4564417792089883808, guid: b61fbb9440b9e1042b4093a218cb4331, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7088230475471159677, guid: b61fbb9440b9e1042b4093a218cb4331, type: 3}
       propertyPath: m_Pivot.x
       value: 0
