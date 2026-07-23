@@ -61,6 +61,8 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     private bool isRunning = false;
     private bool isFinished = false;
     private bool isPenaltyOnCooldown = false;
+    private bool isLoadingSummary = false;
+    private bool isTransitioning = false;
 
     private int gameStartTimestamp = 0;
 
@@ -508,12 +510,46 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
     void OnRoundComplete()
     {
-        if (currentRound >= TOTAL_ROUNDS) FinishGame();
+        // ถ้ากำลังเปลี่ยนรูปอยู่ ห้ามทำซ้ำเด็ดขาด
+        if (isTransitioning) return;
+
+        if (currentRound >= TOTAL_ROUNDS)
+        {
+            FinishGame();
+        }
         else
         {
-            DestroyAllPieces();
-            BeginRound(currentRound + 1);
+            // ถ้ายังไม่ถึงด่านสุดท้าย ให้เรียก Coroutine เพื่อหน่วงเวลา
+            StartCoroutine(TransitionToNextRound());
         }
+    }
+
+    // 🌟 [เพิ่มฟังก์ชันนี้ใหม่] ระบบหน่วงเวลาก่อนขึ้นรูปถัดไป
+    IEnumerator TransitionToNextRound()
+    {
+        isTransitioning = true;
+        isRunning = false; // หยุดนับเวลาชั่วคราว ให้เวลาหยุดนิ่งตอนโชว์ผลงาน
+
+        // โชว์ข้อความให้รู้ว่าต่อเสร็จแล้ว
+        if (countdownText != null)
+        {
+            countdownText.gameObject.SetActive(true);
+            countdownText.text = "ต่อสำเร็จ!";
+        }
+
+        // 🌟 ค้างหน้าจอไว้ 3 วินาที (ปรับตัวเลข 3f ตรงนี้ได้ตามต้องการ)
+        yield return new WaitForSeconds(3f);
+
+        if (countdownText != null)
+        {
+            countdownText.gameObject.SetActive(false);
+        }
+
+        // ล้างไพ่ทั้งหมด แล้วเริ่มรอบถัดไป
+        DestroyAllPieces();
+        BeginRound(currentRound + 1);
+
+        isTransitioning = false;
     }
 
     void FinishGame()
@@ -552,7 +588,8 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
     void CheckGameEndCondition()
     {
-        if (!PhotonNetwork.IsMasterClient) return;
+        // ถ้ากำลังนับถอยหลังโหลดซีนอยู่แล้ว ให้ข้ามไปเลย
+        if (!PhotonNetwork.IsMasterClient || isLoadingSummary) return;
 
         var props = PhotonNetwork.CurrentRoom.CustomProperties;
         bool t1Done = props.ContainsKey(PROP_TEAM1_TIME);
@@ -560,13 +597,16 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
         if (t1Done || t2Done)
         {
-            PhotonNetwork.LoadLevel("SummaryScene");
+            isLoadingSummary = true; // ล็อกไว้ไม่ให้รันซ้ำ
+            StartCoroutine(LoadSummaryScene()); // สั่งรัน Coroutine เพื่อหน่วงเวลา
         }
     }
 
     IEnumerator LoadSummaryScene()
     {
-        yield return new WaitForSeconds(2f);
+        // 🌟 ตั้งค่าเวลาหน่วงตรงนี้ (เช่น ค้างหน้าจอไว้ 4 วินาที)
+        yield return new WaitForSeconds(4f);
+
         PhotonNetwork.LoadLevel("SummaryScene");
     }
 
