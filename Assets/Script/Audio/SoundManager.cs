@@ -16,8 +16,8 @@ public class SoundManager : MonoBehaviour
     [SerializeField] int sfxPoolSize = 5;
 
     [Header("Default Volume")]
-    [Range(0f, 1f)] [SerializeField] float defaultBGMVolume = 0.7f;
-    [Range(0f, 1f)] [SerializeField] float defaultSFXVolume = 1f;
+    [Range(0f, 1f)][SerializeField] float defaultBGMVolume = 0.7f;
+    [Range(0f, 1f)][SerializeField] float defaultSFXVolume = 1f;
 
     AudioSource bgmSource;
     AudioSource[] sfxPool;
@@ -130,16 +130,26 @@ public class SoundManager : MonoBehaviour
                 return BGMId.MG1_Basketball;
             case "MG1_3":
                 return BGMId.MG1_TreePlanting;
+
             case "SummaryScene":
                 return BGMId.Summary;
+
+            case "menu_Jigsaw":
+                return BGMId.menu_Jigsaw;
+            case "GameplaySolo":
+                return BGMId.GameplaySolo;
+            case "GameplayTeam1":
+                return BGMId.GameplayTeam1;
+            case "GameplayTeam2":
+                return BGMId.GameplayTeam2;
+            case "HostMonitor":
+                return BGMId.HostMonitor;
+
             default:
                 return BGMId.None;
         }
     }
 
-    /// <summary>
-    /// เรียกหลัง user interaction ครั้งแรก (จำเป็นสำหรับ WebGL / browser autoplay policy)
-    /// </summary>
     public void UnlockAudio()
     {
         if (audioUnlocked)

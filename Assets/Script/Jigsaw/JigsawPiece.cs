@@ -33,7 +33,6 @@ public class JigsawPiece : MonoBehaviour
     private JigsawGameManager gameManager;
     private int originalSortingOrder;
 
-    // ตัวแปรสำหรับเก็บออบเจกต์ป็อบอัพ
     private GameObject popupIndicator;
 
     public static JigsawPiece currentlyDraggingPiece = null;
@@ -69,7 +68,6 @@ public class JigsawPiece : MonoBehaviour
         if (isPlaced) return;
         if (mainCam == null) mainCam = Camera.main;
 
-        // ถ้ามีการลากชิ้นอื่นอยู่ (ในเครื่องเดียวกัน) ห้ามชิ้นนี้ทำงาน
         if (currentlyDraggingPiece != null && currentlyDraggingPiece != this) return;
 
         Vector2 currentMouse = mainCam.ScreenToWorldPoint(Input.mousePosition);
@@ -128,22 +126,24 @@ public class JigsawPiece : MonoBehaviour
         isGrabbed = true;
         currentlyDraggingPiece = this;
 
-        // หรี่สีชิ้นส่วนตัวจริงที่อยู่ใต้นิ้วลงเล็กน้อย
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlaySFX(SFXId.JigsawPick);
+        }
+
         sr.sortingOrder = 999;
         sr.color = grabbedColor;
 
-        // 🌟 สร้าง Popup ลอยเหนือชิ้นส่วน
         if (popupIndicator == null)
         {
             popupIndicator = new GameObject("PopupIndicator");
-            popupIndicator.transform.SetParent(transform); // ให้มันวิ่งตามชิ้นส่วนหลัก
-            popupIndicator.transform.localPosition = new Vector3(0, popupOffsetY, 0); // ยกขึ้นแนวตั้ง
-            popupIndicator.transform.localScale = Vector3.one * 1.2f; // ขยายขนาดให้มองเห็นชัดขึ้น
+            popupIndicator.transform.SetParent(transform);
+            popupIndicator.transform.localPosition = new Vector3(0, popupOffsetY, 0);
+            popupIndicator.transform.localScale = Vector3.one * 1.2f;
 
-            // ก๊อปปี้ภาพมาใส่ใน Popup
             SpriteRenderer popupSr = popupIndicator.AddComponent<SpriteRenderer>();
             popupSr.sprite = sr.sprite;
-            popupSr.sortingOrder = 1000; // ให้อยู่บนสุดเสมอ
+            popupSr.sortingOrder = 1000;
             popupSr.color = Color.white;
         }
     }
@@ -156,7 +156,6 @@ public class JigsawPiece : MonoBehaviour
         sr.sortingOrder = originalSortingOrder;
         sr.color = defaultColor;
 
-        // 🌟 ทำลาย Popup ทิ้งทันทีเมื่อปล่อยมือ
         if (popupIndicator != null)
         {
             Destroy(popupIndicator);
@@ -201,11 +200,21 @@ public class JigsawPiece : MonoBehaviour
         if (GetComponent<Collider2D>() != null) GetComponent<Collider2D>().enabled = false;
         sr.color = defaultColor;
 
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlaySFX(SFXId.JigsawDrop);
+        }
+
         if (gameManager != null) gameManager.OnPiecePlaced(pieceIndex);
     }
 
     void ResetBoardLocally()
     {
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlaySFX(SFXId.JigsawError);
+        }
+
         if (gameManager != null)
         {
             gameManager.ShowConflictEffect(transform.position);

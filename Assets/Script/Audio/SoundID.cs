@@ -9,6 +9,12 @@ public enum BGMId
     MG1_Basketball,
     MG1_TreePlanting,
     Summary,
+    JigsawTheme,
+    menu_Jigsaw,
+    GameplaySolo,
+    GameplayTeam1,
+    GameplayTeam2,
+    HostMonitor,
 }
 
 public enum SFXId
@@ -23,4 +29,7 @@ public enum SFXId
     GameOver,
     HoopShoot,
     TreePlant,
+    JigsawError,
+    JigsawDrop,
+    JigsawPick,
 }
