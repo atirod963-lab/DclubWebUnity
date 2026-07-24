@@ -66,14 +66,43 @@ public class SummaryManager : MonoBehaviourPunCallbacks
 
     void TryShowResult()
     {
-        var props = PhotonNetwork.CurrentRoom.CustomProperties;
-        float t1 = props.ContainsKey("Team1Time") ? (float)props["Team1Time"] : -1f;
-        float t2 = props.ContainsKey("Team2Time") ? (float)props["Team2Time"] : -1f;
+        if (PlayerPrefs.GetInt("IsSoloGame", 0) == 1)
+        {
+            float soloTime = PlayerPrefs.GetFloat("SoloFinalTime", 0f);
+            ShowSoloResult(soloTime);
+            return;
+        }
 
-        if (t1 >= 0) { team1Done = true; finalTimeT1 = t1; }
-        if (t2 >= 0) { team2Done = true; finalTimeT2 = t2; }
+        if (PhotonNetwork.CurrentRoom != null)
+        {
+            var props = PhotonNetwork.CurrentRoom.CustomProperties;
+            float t1 = props.ContainsKey("Team1Time") ? (float)props["Team1Time"] : -1f;
+            float t2 = props.ContainsKey("Team2Time") ? (float)props["Team2Time"] : -1f;
 
-        if (team1Done || team2Done) ShowWinner(finalTimeT1, finalTimeT2);
+            if (t1 >= 0) { team1Done = true; finalTimeT1 = t1; }
+            if (t2 >= 0) { team2Done = true; finalTimeT2 = t2; }
+
+            if (team1Done || team2Done) ShowWinner(finalTimeT1, finalTimeT2);
+        }
+    }
+
+    void ShowSoloResult(float time)
+    {
+        waitingPanel.SetActive(false);
+
+        winnerText.text = "🎉 ยินดีด้วย! คุณต่อสำเร็จแล้ว!";
+        if (winTimeText != null) winTimeText.text = "เวลาของคุณ: " + FormatTime(time);
+
+        if (winnerSlots.Length > 0)
+        {
+            string myName = PhotonNetwork.NickName;
+            int myAvatar = PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("AvatarID") ?
+                           (int)PhotonNetwork.LocalPlayer.CustomProperties["AvatarID"] : 0;
+
+            SetupSlot(winnerSlots[0], myName, myAvatar);
+        }
+
+        if (facebookShareButton != null) facebookShareButton.gameObject.SetActive(true);
     }
 
     public override void OnRoomPropertiesUpdate(Hashtable changedProps)

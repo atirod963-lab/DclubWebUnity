@@ -557,32 +557,34 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         isRunning = false;
         isFinished = true;
 
-        if (PhotonNetwork.CurrentRoom != null)
+        if (isSoloMode)
         {
-            string progKey = (myTeam == 1) ? PROP_TEAM1_PROGRESS : PROP_TEAM2_PROGRESS;
-            string timeKey = (myTeam == 1) ? PROP_TEAM1_TIME : PROP_TEAM2_TIME;
+            PlayerPrefs.SetFloat("SoloFinalTime", elapsedTime);
+            PlayerPrefs.SetInt("IsSoloGame", 1);
+            StartCoroutine(LoadSummaryScene());
+        }
+        else
+        {
+            PlayerPrefs.SetInt("IsSoloGame", 0);
+            if (PhotonNetwork.CurrentRoom != null)
+            {
+                string progKey = (myTeam == 1) ? PROP_TEAM1_PROGRESS : PROP_TEAM2_PROGRESS;
+                string timeKey = (myTeam == 1) ? PROP_TEAM1_TIME : PROP_TEAM2_TIME;
 
-            var props = new Hashtable {
-                { progKey, "FINISH!" },
-                { timeKey, elapsedTime }
-            };
+                var props = new Hashtable {
+                    { progKey, "FINISH!" },
+                    { timeKey, elapsedTime }
+                };
 
-            PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+                PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+            }
+            CheckGameEndCondition();
         }
 
         if (countdownText != null)
         {
             countdownText.gameObject.SetActive(true);
             countdownText.text = "จบเกม! กำลังสรุปผล...";
-        }
-
-        if (isSoloMode)
-        {
-            StartCoroutine(LoadSummaryScene());
-        }
-        else
-        {
-            CheckGameEndCondition();
         }
     }
 
