@@ -1449,7 +1449,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9014340026736755746, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
       propertyPath: m_enableAutoSizing
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
@@ -2332,7 +2332,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -346924092, guid: 97780738763635e41ae5a4448c20b653, type: 3}
+  m_Sprite: {fileID: 353547124, guid: a06385b2a00251947b00755490f061cd, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

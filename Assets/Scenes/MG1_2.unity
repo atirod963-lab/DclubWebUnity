@@ -147,6 +147,10 @@ PrefabInstance:
       propertyPath: m_SizeDelta.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2616700003272603779, guid: b61fbb9440b9e1042b4093a218cb4331, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2648587404793417613, guid: b61fbb9440b9e1042b4093a218cb4331, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -885,7 +889,7 @@ PrefabInstance:
     - target: {fileID: 3239336256432780704, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: -1011454480, guid: 97780738763635e41ae5a4448c20b653, type: 3}
+      objectReference: {fileID: 1035784463, guid: a06385b2a00251947b00755490f061cd, type: 3}
     - target: {fileID: 3503140723370794180, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -1056,7 +1060,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -346924092, guid: 97780738763635e41ae5a4448c20b653, type: 3}
+  m_Sprite: {fileID: 353547124, guid: a06385b2a00251947b00755490f061cd, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
