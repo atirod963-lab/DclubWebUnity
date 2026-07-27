@@ -35,8 +35,14 @@ public class SummaryManager : MonoBehaviourPunCallbacks
     public Button captureScreenButton;
     public Button returnToLobbyButton;
     public Button viewPuzzleButton;
-    public GameObject finishedPuzzlePanel;
-    public Button closePuzzlePanelButton;
+
+    [Header("หน้าต่างดูรูปภาพ")]
+    public GameObject finishedPuzzlePanelSolo;
+    public GameObject finishedPuzzlePanelTeam;
+
+    public Button closePuzzlePanelButtonSolo;
+    public Button closePuzzlePanelButtonTeam;
+
     public string gameURL = "https://pongsatornthn-art.github.io/DClub-Multiplayer-Web01/";
 
     private bool team1Done = false;
@@ -46,11 +52,15 @@ public class SummaryManager : MonoBehaviourPunCallbacks
     private float finalTimeT2 = 9999f;
     private int winningTeam = 0;
 
+    private bool isSoloResult = false;
+
     void Start()
     {
         waitingPanel.SetActive(true);
         if (facebookShareButton != null) facebookShareButton.gameObject.SetActive(false);
-        if (finishedPuzzlePanel != null) finishedPuzzlePanel.SetActive(false);
+
+        if (finishedPuzzlePanelSolo != null) finishedPuzzlePanelSolo.SetActive(false);
+        if (finishedPuzzlePanelTeam != null) finishedPuzzlePanelTeam.SetActive(false);
 
         HideAllSlots(winnerSlots);
         HideAllSlots(loserSlots);
@@ -59,7 +69,9 @@ public class SummaryManager : MonoBehaviourPunCallbacks
         if (captureScreenButton != null) captureScreenButton.onClick.AddListener(CaptureScreen);
         if (returnToLobbyButton != null) returnToLobbyButton.onClick.AddListener(ReturnToLobby);
         if (viewPuzzleButton != null) viewPuzzleButton.onClick.AddListener(OpenPuzzleView);
-        if (closePuzzlePanelButton != null) closePuzzlePanelButton.onClick.AddListener(ClosePuzzleView);
+
+        if (closePuzzlePanelButtonSolo != null) closePuzzlePanelButtonSolo.onClick.AddListener(ClosePuzzleView);
+        if (closePuzzlePanelButtonTeam != null) closePuzzlePanelButtonTeam.onClick.AddListener(ClosePuzzleView);
 
         TryShowResult();
     }
@@ -68,10 +80,13 @@ public class SummaryManager : MonoBehaviourPunCallbacks
     {
         if (PlayerPrefs.GetInt("IsSoloGame", 0) == 1)
         {
+            isSoloResult = true;
             float soloTime = PlayerPrefs.GetFloat("SoloFinalTime", 0f);
             ShowSoloResult(soloTime);
             return;
         }
+
+        isSoloResult = false;
 
         if (PhotonNetwork.CurrentRoom != null)
         {
@@ -126,13 +141,11 @@ public class SummaryManager : MonoBehaviourPunCallbacks
 
         foreach (var p in PhotonNetwork.PlayerList)
         {
-            // 🌟 [เพิ่มใหม่] ถ้าคนนี้คือ MasterClient (คนสร้างห้อง/Host) ให้ข้ามไปเลย ไม่ต้องเอามาโชว์
             if (p.IsMasterClient) continue;
 
             int playerTeam = p.CustomProperties.ContainsKey("Team") ? (int)p.CustomProperties["Team"] : -1;
             int avatarID = p.CustomProperties.ContainsKey("AvatarID") ? (int)p.CustomProperties["AvatarID"] : 0;
 
-            // 🌟 [เพิ่มใหม่] กรองให้โชว์เฉพาะคนที่อยู่ทีม 1 หรือ 2 เท่านั้น
             if (playerTeam == 1 || playerTeam == 2)
             {
                 if (playerTeam == winningTeam || (winningTeam == 0 && playerTeam == 1))
@@ -189,6 +202,24 @@ public class SummaryManager : MonoBehaviourPunCallbacks
     IEnumerator TakeScreenshotRoutine() { yield return new WaitForEndOfFrame(); ScreenCapture.CaptureScreenshot("Winner_Summary_" + System.DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".png"); }
     public void ReturnToLobby() { PhotonNetwork.LeaveRoom(); }
     public override void OnLeftRoom() { SceneManager.LoadScene("menu_Jigsaw"); }
-    public void OpenPuzzleView() { if (finishedPuzzlePanel != null) finishedPuzzlePanel.SetActive(true); }
-    public void ClosePuzzleView() { if (finishedPuzzlePanel != null) finishedPuzzlePanel.SetActive(false); }
+
+    public void OpenPuzzleView()
+    {
+        ClosePuzzleView();
+
+        if (isSoloResult)
+        {
+            if (finishedPuzzlePanelSolo != null) finishedPuzzlePanelSolo.SetActive(true);
+        }
+        else
+        {
+            if (finishedPuzzlePanelTeam != null) finishedPuzzlePanelTeam.SetActive(true);
+        }
+    }
+
+    public void ClosePuzzleView()
+    {
+        if (finishedPuzzlePanelSolo != null) finishedPuzzlePanelSolo.SetActive(false);
+        if (finishedPuzzlePanelTeam != null) finishedPuzzlePanelTeam.SetActive(false);
+    }
 }

@@ -2887,8 +2887,10 @@ MonoBehaviour:
   captureScreenButton: {fileID: 1780195833}
   returnToLobbyButton: {fileID: 1915248631}
   viewPuzzleButton: {fileID: 1316040829}
-  finishedPuzzlePanel: {fileID: 1652795442}
-  closePuzzlePanelButton: {fileID: 298960380}
+  finishedPuzzlePanelSolo: {fileID: 607877189}
+  finishedPuzzlePanelTeam: {fileID: 1652795442}
+  closePuzzlePanelButtonSolo: {fileID: 1434080362}
+  closePuzzlePanelButtonTeam: {fileID: 298960380}
   gameURL: https://pongsatornthn-art.github.io/DClub-Multiplayer-Web01/
 --- !u!4 &1276887032
 Transform:
@@ -3433,7 +3435,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 36, y: 369}
+  m_AnchoredPosition: {x: 36, y: 362}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1564010469
@@ -3859,7 +3861,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 36, y: 438}
+  m_AnchoredPosition: {x: 36, y: 471}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1671578944
