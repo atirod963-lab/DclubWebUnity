@@ -456,7 +456,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   countdownText: {fileID: 1595421013}
-  tutorialPanel: {fileID: 0}
+  tutorialPanel: {fileID: 166766604}
   tutorialDisplayTime: 5
 --- !u!114 &376703426
 MonoBehaviour:

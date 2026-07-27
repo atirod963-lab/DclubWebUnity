@@ -569,7 +569,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   countdownText: {fileID: 1603087365}
-  tutorialPanel: {fileID: 0}
+  tutorialPanel: {fileID: 1478283847}
   tutorialDisplayTime: 5
 --- !u!1 &371516526
 GameObject:
