@@ -54,6 +54,11 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
     [Header("Penalty Safety")]
     public float penaltyCooldownSeconds = 1.0f;
 
+    [Header("Tutorial Settings (หน้าสอนเล่น)")]
+    public GameObject tutorialPanel;
+    public float tutorialDisplayTime = 5f;
+
+
     private int currentRound = 1;
     private int piecesPlaced = 0;
     private int totalPieces = 0;
@@ -74,7 +79,11 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
     public bool[] isPiecePlaced;
 
-    // 🌟 [แก้ตรงนี้] ย้ายคำสั่งมาไว้ใน Awake เพื่อให้โค้ดทำงานทันทีที่เปิดฉาก 100%
+    // 🌟 [แก้ตรงนี้] ประกาศตัวแปรที่ขาดหายไป สำหรับเช็คเสียงนับถอยหลัง
+    private bool countdownTickPlayed = false;
+    private bool countdownStartPlayed = false;
+
+    // 🌟 ย้ายคำสั่งมาไว้ใน Awake เพื่อให้โค้ดทำงานทันทีที่เปิดฉาก 100%
     void Awake()
     {
         PhotonNetwork.AutomaticallySyncScene = true;
@@ -86,6 +95,25 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         {
             myTeam = (int)PhotonNetwork.LocalPlayer.CustomProperties["Team"];
         }
+
+        // 🌟 [แก้ตรงนี้] จัดระเบียบ if-else ใหม่ให้โครงสร้างถูกต้อง
+        if (tutorialPanel != null)
+        {
+            if (countdownText != null) countdownText.gameObject.SetActive(false);
+            tutorialPanel.SetActive(true);
+            StartCoroutine(WaitAndHideTutorial());
+        }
+        else
+        {
+            CheckAndStartGame();
+        }
+    }
+
+    // 🌟 [เพิ่มฟังก์ชันนี้] เพื่อใช้รันระบบเกมทั้งกรณีที่มีหรือไม่มี Tutorial ก็ให้มารวมที่นี่
+    void CheckAndStartGame()
+    {
+        // สั่งรันเตรียมความพร้อมของ Manager อื่นๆ
+        StartCoroutine(StartCountdownRoutine());
 
         if (isSoloMode)
         {
@@ -524,7 +552,7 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         }
     }
 
-    // 🌟 [เพิ่มฟังก์ชันนี้ใหม่] ระบบหน่วงเวลาก่อนขึ้นรูปถัดไป
+    // 🌟 ระบบหน่วงเวลาก่อนขึ้นรูปถัดไป
     IEnumerator TransitionToNextRound()
     {
         isTransitioning = true;
@@ -614,7 +642,7 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
 
     void DestroyAllPieces()
     {
-        JigsawPiece[] allPiecesInScene = FindObjectsOfType<JigsawPiece>();
+        JigsawPiece[] allPiecesInScene = FindObjectsByType<JigsawPiece>(FindObjectsSortMode.None);
         foreach (JigsawPiece p in allPiecesInScene)
         {
             if (p != null) Destroy(p.gameObject);
@@ -635,5 +663,68 @@ public class JigsawGameManager : MonoBehaviourPunCallbacks
         int min = (int)(elapsedTime / 60);
         int sec = (int)(elapsedTime % 60);
         timerText.text = $"{min:00}:{sec:00}";
+    }
+
+    IEnumerator WaitAndHideTutorial()
+    {
+        yield return new WaitForSecondsRealtime(tutorialDisplayTime);
+        if (tutorialPanel != null) tutorialPanel.SetActive(false);
+
+        // 🌟 [แก้ตรงนี้] ให้เรียกฟังก์ชันเริ่มเกมหลังจากสอนเล่นจบ
+        CheckAndStartGame();
+    }
+
+    IEnumerator StartCountdownRoutine()
+    {
+        if (countdownText != null)
+        {
+            countdownText.gameObject.SetActive(true);
+        }
+
+        int count = 3;
+        while (count > 0)
+        {
+            if (countdownText != null) countdownText.text = count.ToString();
+            if (!countdownTickPlayed)
+            {
+                // โค้ดเสียง ถ้าในโปรเจกต์ไม่ได้ใส่ไว้มันก็อาจจะแจ้งเตือน แต่ถ้ามี SoundManager อยู่แล้วก็จะทำงานได้ปกติ
+                // SoundManager.Instance?.PlaySFX(SFXId.CountdownTick);
+                countdownTickPlayed = true;
+            }
+            yield return new WaitForSecondsRealtime(1f);
+            count--;
+        }
+
+        if (countdownText != null) countdownText.text = "START!";
+        if (!countdownStartPlayed)
+        {
+            // SoundManager.Instance?.PlaySFX(SFXId.CountdownStart);
+            countdownStartPlayed = true;
+        }
+        yield return new WaitForSecondsRealtime(1f);
+
+        if (countdownText != null) countdownText.gameObject.SetActive(false);
+
+        Time.timeScale = 1f;
+
+        // -------------------------------------------------------------
+        // สั่งเปิดระบบของเกมแต่ละแบบ (มีอันไหน ก็เปิดอันนั้น ไม่ Error ตีกัน)
+        // -------------------------------------------------------------
+        // หากต้องการให้ปลอดภัยเรื่อง Error สามารถเช็คแบบด้านล่างนี้ได้
+        /*
+        if (TouchManager2D.Instance != null)
+            TouchManager2D.Instance.isGameActive = true;
+
+        if (TreeGameManager.Instance != null)
+            TreeGameManager.Instance.StartMiniGame();
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.isGameActive = true;
+        */
+        // -------------------------------------------------------------
+
+        GameTimer timer = FindFirstObjectByType<GameTimer>();
+        if (timer != null)
+            timer.StartTimer();
     }
 }

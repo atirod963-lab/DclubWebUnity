@@ -100,7 +100,7 @@ public class GameStartManager : MonoBehaviour
             GameManager.Instance.isGameActive = true;
         // -------------------------------------------------------------
 
-        GameTimer timer = FindObjectOfType<GameTimer>();
+        GameTimer timer = FindFirstObjectByType<GameTimer>();
         if (timer != null)
             timer.StartTimer();
     }
