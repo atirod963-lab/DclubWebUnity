@@ -148,13 +148,28 @@ public class TreeGameManager : MonoBehaviour
 
     void SpawnFloatingText()
     {
-        if (floatingTextPrefab != null && canvas != null)
+        if (floatingTextPrefab != null)
         {
-            Vector3 inputPosition = Input.mousePosition;
-            if (Input.touchCount > 0) inputPosition = Input.GetTouch(0).position;
+            // 1. รับตำแหน่งจากเมาส์หรือการทัช (Screen Space)
+            Vector3 screenPosition = Input.mousePosition;
+            if (Input.touchCount > 0) screenPosition = Input.GetTouch(0).position;
 
-            GameObject textObj = Instantiate(floatingTextPrefab, canvas.transform);
-            textObj.transform.position = inputPosition;
+            // 2. แปลงพิกัดหน้าจอเป็นพิกัดในโลกของเกม (World Space)
+            if (Camera.main != null)
+            {
+                // ใส่ค่า Z ให้ห่างจากกล้องนิดหน่อย เพื่อให้กล้องมองเห็น
+                screenPosition.z = Mathf.Abs(Camera.main.transform.position.z);
+                Vector3 worldPosition = Camera.main.ScreenToWorldPoint(screenPosition);
+
+                // ล็อคค่า Z ให้อยู่ที่ 0 (หรือแกนเดียวกับเกม 2D ของคุณ)
+                worldPosition.z = 0f;
+
+                // 3. เสก Prefab ลงในตำแหน่งที่คำนวณได้ (ไม่ต้องใช้ Canvas แล้ว)
+                GameObject textObj = Instantiate(floatingTextPrefab, worldPosition, Quaternion.identity);
+
+                // (Optional) ถ้าตัว Prefab รูปภาพไม่มีสคริปต์ลบตัวเอง ให้เปิดคอมเมนต์บรรทัดล่างนี้เพื่อให้มันหายไปหลังผ่านไป 1-2 วินาที
+                // Destroy(textObj, 1.5f); 
+            }
         }
     }
 }
