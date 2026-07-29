@@ -131,7 +131,7 @@ TextureImporter:
         width: 129
         height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -140,6 +140,28 @@ TextureImporter:
       bones: []
       spriteID: c02c757839c58b24ab5dbd42e831277e
       internalID: -1294450773
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI1.6_1
+      rect:
+        serializedVersion: 2
+        x: 284
+        y: 173
+        width: 129
+        height: 106
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 61ee326239fb06b47bdadeba80f13775
+      internalID: 1679161742
       vertices: []
       indices: 
       edges: []
@@ -159,6 +181,7 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       UI1.6_0: -1294450773
+      UI1.6_1: 1679161742
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
