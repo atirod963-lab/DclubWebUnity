@@ -196,5 +196,7 @@ MonoBehaviour:
   grabbedColor: {r: 1, g: 1, b: 1, a: 1}
   defaultColor: {r: 1, g: 1, b: 1, a: 1}
   popupOffsetY: 5
+  popupHighlightColor: {r: 0.015686275, g: 1, b: 0.03137255, a: 1}
+  highlightPadding: 0.3
   isPlaced: 0
   isGrabbed: 0

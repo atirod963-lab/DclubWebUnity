@@ -196,5 +196,8 @@ MonoBehaviour:
   grabbedColor: {r: 1, g: 1, b: 1, a: 1}
   defaultColor: {r: 1, g: 1, b: 1, a: 1}
   popupOffsetY: 5
+  highlightBackgroundSprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  popupHighlightColor: {r: 0.015686274, g: 1, b: 0.032776043, a: 1}
+  highlightPadding: 0.3
   isPlaced: 0
   isGrabbed: 0

@@ -21,6 +21,10 @@ public class JigsawPiece : MonoBehaviour
     [Header("UI ป็อบอัพนิ้วบัง")]
     [Tooltip("ระยะความสูงของป็อบอัพที่จะลอยขึ้นมาเหนือจุดที่กด")]
     public float popupOffsetY = 5f;
+    [Tooltip("สีของแผ่นพื้นหลัง")]
+    public Color popupHighlightColor = Color.yellow;
+    [Tooltip("ระยะความหนาของขอบ (Padding) ที่จะให้ใหญ่กว่าตัวจิ๊กซอว์")]
+    public float highlightPadding = 0.3f;
 
     [Header("สถานะ")]
     public bool isPlaced = false;
@@ -34,6 +38,9 @@ public class JigsawPiece : MonoBehaviour
     private int originalSortingOrder;
 
     private GameObject popupIndicator;
+
+    // 🌟 ตัวแปรเก็บภาพสี่เหลี่ยมสีขาวที่สร้างขึ้นจากโค้ด
+    private static Sprite autoGenBgSprite;
 
     public static JigsawPiece currentlyDraggingPiece = null;
 
@@ -132,7 +139,11 @@ public class JigsawPiece : MonoBehaviour
         }
 
         sr.sortingOrder = 999;
-        sr.color = grabbedColor;
+
+        // 🌟 1. ลด Opacity ชิ้นส่วนจริงลงเหลือ 50%
+        Color semiTransparent = grabbedColor;
+        semiTransparent.a = 0.5f;
+        sr.color = semiTransparent;
 
         if (popupIndicator == null)
         {
@@ -141,6 +152,31 @@ public class JigsawPiece : MonoBehaviour
             popupIndicator.transform.localPosition = new Vector3(0, popupOffsetY, 0);
             popupIndicator.transform.localScale = Vector3.one * 1.2f;
 
+            // 🌟 2. สร้างแผ่นพื้นหลังสี่เหลี่ยมด้วยโค้ด (รับประกันว่าโผล่แน่นอน 100%)
+            if (autoGenBgSprite == null)
+            {
+                Texture2D tex = new Texture2D(1, 1);
+                tex.SetPixel(0, 0, Color.white);
+                tex.Apply();
+                autoGenBgSprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
+            }
+
+            GameObject highlightBg = new GameObject("HighlightBackground");
+            highlightBg.transform.SetParent(popupIndicator.transform);
+            highlightBg.transform.localPosition = Vector3.zero;
+
+            SpriteRenderer highlightSr = highlightBg.AddComponent<SpriteRenderer>();
+            highlightSr.sprite = autoGenBgSprite;
+            highlightSr.sortingOrder = 999; // ให้อยู่ด้านหลังภาพ Popup
+            highlightSr.color = popupHighlightColor;
+
+            // คำนวณความกว้างยาวให้ใหญ่กว่าจิ๊กซอว์ชิ้นนั้นๆ
+            float targetWidth = sr.sprite.bounds.size.x + highlightPadding;
+            float targetHeight = sr.sprite.bounds.size.y + highlightPadding;
+
+            highlightBg.transform.localScale = new Vector3(targetWidth, targetHeight, 1f);
+
+            // 🌟 3. ภาพ Popup ตัวจิ๊กซอว์
             SpriteRenderer popupSr = popupIndicator.AddComponent<SpriteRenderer>();
             popupSr.sprite = sr.sprite;
             popupSr.sortingOrder = 1000;
@@ -154,6 +190,8 @@ public class JigsawPiece : MonoBehaviour
         isGrabbed = false;
         currentlyDraggingPiece = null;
         sr.sortingOrder = originalSortingOrder;
+
+        // คืนค่าสีเดิม (Opacity กลับมาเต็ม 100%)
         sr.color = defaultColor;
 
         if (popupIndicator != null)
