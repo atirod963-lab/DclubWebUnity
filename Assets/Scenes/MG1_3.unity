@@ -481,6 +481,8 @@ MonoBehaviour:
   timeRemaining: 21
   timerText: {fileID: 732412300}
   nextSceneName: SummaryScene
+  intermissionTime: 30
+  nextStageButton: {fileID: 985711902}
 --- !u!1 &383317479
 GameObject:
   m_ObjectHideFlags: 0
@@ -1471,6 +1473,26 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1110477958312245892, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 3.03
+      objectReference: {fileID: 0}
+    - target: {fileID: 1110477958312245892, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 3.03
+      objectReference: {fileID: 0}
+    - target: {fileID: 1110477958312245892, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 3.03
+      objectReference: {fileID: 0}
+    - target: {fileID: 1110477958312245892, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -900
+      objectReference: {fileID: 0}
+    - target: {fileID: 1110477958312245892, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1230562108449227251, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -1579,6 +1601,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3890624995505344363, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4037577054119395233, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
       propertyPath: m_Name
       value: Host_V 1
@@ -1594,6 +1620,42 @@ PrefabInstance:
     - target: {fileID: 4470135286634257611, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
       propertyPath: m_CullTransparentMesh
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5278959774037563262, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5278959774037563262, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5278959774037563262, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 376703426}
+    - target: {fileID: 5278959774037563262, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5278959774037563262, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: LoadNextSceneManual
+      objectReference: {fileID: 0}
+    - target: {fileID: 5278959774037563262, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: GameTimer, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 5278959774037563262, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 6667042883973257956, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6667042883973257956, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -1
       objectReference: {fileID: 0}
     - target: {fileID: 7131802068799243608, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
       propertyPath: m_IsActive
@@ -1747,6 +1809,11 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &985711902 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3890624995505344363, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+  m_PrefabInstance: {fileID: 844695728}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1115043933
 GameObject:
   m_ObjectHideFlags: 0

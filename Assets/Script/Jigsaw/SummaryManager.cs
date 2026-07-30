@@ -54,6 +54,9 @@ public class SummaryManager : MonoBehaviourPunCallbacks
 
     private bool isSoloResult = false;
 
+    [System.Runtime.InteropServices.DllImport("__Internal")]
+    private static extern void DownloadScreenshotJS(byte[] byteData, int byteLength, string fileName);
+
     void Start()
     {
         waitingPanel.SetActive(true);
@@ -132,8 +135,8 @@ public class SummaryManager : MonoBehaviourPunCallbacks
     {
         waitingPanel.SetActive(false);
 
-        if (t1 < t2) { winnerText.text = "🏆 ทีม 1 ชนะ!"; winningTeam = 1; if (winTimeText != null) winTimeText.text = "เวลา: " + FormatTime(t1); }
-        else if (t2 < t1) { winnerText.text = "🏆 ทีม 2 ชนะ!"; winningTeam = 2; if (winTimeText != null) winTimeText.text = "เวลา: " + FormatTime(t2); }
+        if (t1 < t2) { winnerText.text = " ทีม สีเขียว ชนะ!"; winningTeam = 1; if (winTimeText != null) winTimeText.text = "เวลา: " + FormatTime(t1); }
+        else if (t2 < t1) { winnerText.text = " ทีม สีแดง ชนะ!"; winningTeam = 2; if (winTimeText != null) winTimeText.text = "เวลา: " + FormatTime(t2); }
         else { winnerText.text = "เสมอกัน!"; winningTeam = 0; if (winTimeText != null) winTimeText.text = "เวลา: " + FormatTime(t1); }
 
         int winIndex = 0;
@@ -198,8 +201,31 @@ public class SummaryManager : MonoBehaviourPunCallbacks
     }
 
     public void ShareToFacebook() { Application.OpenURL("https://www.facebook.com/sharer/sharer.php?u=" + UnityEngine.Networking.UnityWebRequest.EscapeURL(gameURL)); }
+
     public void CaptureScreen() { StartCoroutine(TakeScreenshotRoutine()); }
-    IEnumerator TakeScreenshotRoutine() { yield return new WaitForEndOfFrame(); ScreenCapture.CaptureScreenshot("Winner_Summary_" + System.DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".png"); }
+
+    IEnumerator TakeScreenshotRoutine()
+    {
+        yield return new WaitForEndOfFrame();
+
+        Texture2D tex = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
+        tex.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
+        tex.Apply();
+
+        byte[] bytes = tex.EncodeToPNG();
+        Destroy(tex);
+
+        string fileName = "Winner_Summary_" + System.DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".png";
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        // กรณี Build เล่นบนเว็บ: โยนข้อมูลให้ปลั๊กอิน Javascript สั่งดาวน์โหลด
+        DownloadScreenshotJS(bytes, bytes.Length, fileName);
+#else
+        ScreenCapture.CaptureScreenshot(fileName);
+        Debug.Log("📸 แคปหน้าจอสำเร็จ! รูปถูกเซฟไว้ที่โฟลเดอร์โปรเจกต์ Unity ชื่อ: " + fileName);
+#endif
+    }
+
     public void ReturnToLobby() { PhotonNetwork.LeaveRoom(); }
     public override void OnLeftRoom() { SceneManager.LoadScene("menu_Jigsaw"); }
 
