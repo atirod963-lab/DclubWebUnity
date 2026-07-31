@@ -15,8 +15,8 @@ public class TouchManager2D : MonoBehaviour
     public string timerTextName = "TimerText";
 
     [Header("Floating Score Prefabs")]
-    public GameObject plusScorePrefab;  // ใส่ Prefab ตัวเลข +1
-    public GameObject minusScorePrefab; // ใส่ Prefab ตัวเลข -1
+    public GameObject plusScorePrefab;
+    public GameObject minusScorePrefab;
 
     private TextMeshProUGUI scoreText;
     private TextMeshProUGUI timerText;
@@ -86,7 +86,6 @@ public class TouchManager2D : MonoBehaviour
     {
         if (!isGameActive) return;
 
-        // 🛑 [ดักโฮสต์] ถ้าเป็น Spectator ให้เด้งออกจากระบบสแกนนิ้วไปเลย! ยืนดูได้อย่างเดียว
         if (PhotonNetwork.InRoom && PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Role"))
         {
             if ((string)PhotonNetwork.LocalPlayer.CustomProperties["Role"] == "Spectator") return;
@@ -113,40 +112,86 @@ public class TouchManager2D : MonoBehaviour
         Vector3 worldPosition = Camera.main.ScreenToWorldPoint(screenPosition);
         Vector2 touchPosition2D = new Vector2(worldPosition.x, worldPosition.y);
 
-        Collider2D hitCollider = Physics2D.OverlapPoint(touchPosition2D);
+        Collider2D[] hitColliders = Physics2D.OverlapPointAll(touchPosition2D);
 
-        if (hitCollider != null)
+        foreach (Collider2D hitCollider in hitColliders)
         {
-            if (hitCollider.CompareTag("Healthy Food") || hitCollider.CompareTag("Hoop") || hitCollider.CompareTag("Water"))
+            if (hitCollider.CompareTag("Healthy Food") || hitCollider.CompareTag("Water"))
             {
                 score += 1;
                 UpdateScoreUI();
                 if (GameManager.Instance != null) GameManager.Instance.AddScoreToMyTeam();
 
-                // 🟢 เสกตัวเลข +1 เยื้องไปด้านขวาบนเล็กน้อย
                 if (plusScorePrefab != null)
                 {
                     Vector3 popupPos = hitCollider.transform.position + new Vector3(0.5f, 0.5f, 0f);
                     Instantiate(plusScorePrefab, popupPos, Quaternion.identity);
                 }
 
-                if (hitCollider.CompareTag("Hoop"))
+                SoundManager.Instance?.PlaySFX(SFXId.CorrectTap);
+                Destroy(hitCollider.gameObject);
+
+                return;
+            }
+            else if (hitCollider.CompareTag("Hoop"))
+            {
+                TrashCan trashCan = hitCollider.GetComponent<TrashCan>();
+                HoopController hoop = hitCollider.GetComponent<HoopController>();
+
+                if (trashCan != null)
                 {
-                    SoundManager.Instance?.PlaySFX(SFXId.HoopShoot);
-                    HoopController hoop = hitCollider.GetComponent<HoopController>();
-                    if (hoop != null)
+                    if (trashCan.isTarget)
                     {
-                        if (hoop.hitEffectPrefab != null)
+                        score += 1;
+                        UpdateScoreUI();
+                        if (GameManager.Instance != null) GameManager.Instance.AddScoreToMyTeam();
+
+                        if (plusScorePrefab != null)
                         {
-                            Instantiate(hoop.hitEffectPrefab, hitCollider.transform.position, Quaternion.identity);
+                            Vector3 popupPos = hitCollider.transform.position + new Vector3(0.5f, 0.5f, 0f);
+                            Instantiate(plusScorePrefab, popupPos, Quaternion.identity);
                         }
-                        hoop.MoveToRandomPosition();
+
+                        SoundManager.Instance?.PlaySFX(SFXId.HoopShoot);
+
+                        if (trashCan.hitEffectPrefab != null)
+                        {
+                            Instantiate(trashCan.hitEffectPrefab, hitCollider.transform.position, Quaternion.identity);
+                        }
+
+                        TrashMinigameController controller = FindFirstObjectByType<TrashMinigameController>();
+                        if (controller != null)
+                        {
+                            // 🌟 เอาระบบสุ่ม target ใหม่ออกแล้ว (คงเหลือแค่ขยับหนี)
+                            controller.MoveAllTrashCans();
+                        }
                     }
+                    else
+                    {
+                        Debug.Log("กดโดนตัวหลอก! (ไม่มีอะไรเกิดขึ้น)");
+                    }
+                    return;
                 }
-                else
+                else if (hoop != null)
                 {
-                    SoundManager.Instance?.PlaySFX(SFXId.CorrectTap);
-                    Destroy(hitCollider.gameObject);
+                    score += 1;
+                    UpdateScoreUI();
+                    if (GameManager.Instance != null) GameManager.Instance.AddScoreToMyTeam();
+
+                    if (plusScorePrefab != null)
+                    {
+                        Vector3 popupPos = hitCollider.transform.position + new Vector3(0.5f, 0.5f, 0f);
+                        Instantiate(plusScorePrefab, popupPos, Quaternion.identity);
+                    }
+
+                    SoundManager.Instance?.PlaySFX(SFXId.HoopShoot);
+                    if (hoop.hitEffectPrefab != null)
+                    {
+                        Instantiate(hoop.hitEffectPrefab, hitCollider.transform.position, Quaternion.identity);
+                    }
+                    hoop.MoveToRandomPosition();
+
+                    return;
                 }
             }
             else if (hitCollider.CompareTag("Junk Food"))
@@ -155,7 +200,6 @@ public class TouchManager2D : MonoBehaviour
                 UpdateScoreUI();
                 if (GameManager.Instance != null) GameManager.Instance.SubtractScoreToMyTeam();
 
-                // 🔴 เสกตัวเลข -1 เยื้องไปด้านขวาบนเล็กน้อย
                 if (minusScorePrefab != null)
                 {
                     Vector3 popupPos = hitCollider.transform.position + new Vector3(0.5f, 0.5f, 0f);
@@ -164,6 +208,8 @@ public class TouchManager2D : MonoBehaviour
 
                 SoundManager.Instance?.PlaySFX(SFXId.WrongTap);
                 Destroy(hitCollider.gameObject);
+
+                return;
             }
         }
     }
