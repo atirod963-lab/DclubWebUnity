@@ -154,7 +154,7 @@ PrefabInstance:
     - target: {fileID: 2648587404793417613, guid: b61fbb9440b9e1042b4093a218cb4331, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: 42f44cb2919031f428109b55684ad97b, type: 3}
+      objectReference: {fileID: 21300000, guid: 7461d3ecacb6c6a4a965f7bc4ccd8245, type: 3}
     - target: {fileID: 3696875662008381154, guid: b61fbb9440b9e1042b4093a218cb4331, type: 3}
       propertyPath: m_Name
       value: BG_Jigsaw_Game Play
@@ -984,6 +984,26 @@ PrefabInstance:
     - target: {fileID: 5278959774037563262, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535163187040565331, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_fontSize
+      value: 20.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535163187040565331, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: d8644034854e6f640aea61fce8eb334a, type: 2}
+    - target: {fileID: 5535163187040565331, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: -4278498419429021872, guid: d8644034854e6f640aea61fce8eb334a, type: 2}
+    - target: {fileID: 5535163187040565331, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5535163187040565331, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6667042883973257956, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
       propertyPath: m_AnchoredPosition.x
