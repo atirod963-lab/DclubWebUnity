@@ -14,20 +14,43 @@ public class GameTimer : MonoBehaviour
 
     [Header("Intermission Settings (เวลาพักเบรก)")]
     public float intermissionTime = 30f;
+    public float singlePlayerIntermissionTime = 5f;
 
-    [Header("Staff Control (ปุ่มเปลี่ยนด่าน)")]
-    public GameObject nextStageButton;
+    [Header("Intermission UI (หน้าจอสรุปคะแนน)")]
+    public GameObject intermissionPanel;
+    public TextMeshProUGUI intermissionGreenText;
+    public TextMeshProUGUI intermissionRedText;
+
+    [Header("Button Controls")]
+    public GameObject nextButton;
+
+    [Header("UI to Hide (ซ่อนตอนพักเบรก)")]
+    [Tooltip("ลากป้ายคะแนนส่วนตัว (Score: x) หรือ UI ที่เกะกะมาใส่ตรงนี้ เพื่อให้มันซ่อนตอนขึ้นหน้าสรุปผล")]
+    public GameObject[] uiToHideWhenFinished;
 
     private bool isIntermission = false;
     private bool timerIsRunning = false;
+    private bool isSinglePlayer = false;
+
+    void Awake()
+    {
+        if (intermissionPanel != null)
+            intermissionPanel.SetActive(false);
+    }
 
     void Start()
     {
         UpdateTimerDisplay(timeRemaining);
+        if (intermissionPanel != null)
+            intermissionPanel.SetActive(false);
 
-        if (nextStageButton != null)
+        if (nextButton != null)
+            nextButton.SetActive(false);
+
+        isSinglePlayer = PlayerPrefs.GetInt("IsSoloGame", 0) == 1;
+        if (isSinglePlayer)
         {
-            nextStageButton.SetActive(false);
+            intermissionTime = singlePlayerIntermissionTime;
         }
     }
 
@@ -85,18 +108,60 @@ public class GameTimer : MonoBehaviour
 
     void OnTimerFinished()
     {
-        Debug.Log("Game Finished - Starting Intermission Countdown.");
-
         SoundManager.Instance?.PlaySFX(SFXId.GameOver);
         if (TouchManager2D.Instance != null)
             TouchManager2D.Instance.isGameActive = false;
 
-        isIntermission = true;
-
-        if (PhotonNetwork.IsMasterClient && nextStageButton != null)
+        if (uiToHideWhenFinished != null)
         {
-            nextStageButton.SetActive(true);
+            foreach (GameObject ui in uiToHideWhenFinished)
+            {
+                if (ui != null) ui.SetActive(false);
+            }
         }
+
+        if (!isSinglePlayer && PhotonNetwork.InRoom)
+        {
+            if (intermissionPanel != null)
+            {
+                intermissionPanel.SetActive(true);
+
+                int gScore = 0;
+                int rScore = 0;
+
+                if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("GlobalGreenScore"))
+                    gScore = (int)PhotonNetwork.CurrentRoom.CustomProperties["GlobalGreenScore"];
+
+                if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("GlobalRedScore"))
+                    rScore = (int)PhotonNetwork.CurrentRoom.CustomProperties["GlobalRedScore"];
+
+                if (intermissionGreenText != null) intermissionGreenText.text = "Score: " + gScore;
+                if (intermissionRedText != null) intermissionRedText.text = "Score: " + rScore;
+            }
+
+            if (nextButton != null)
+            {
+                bool isHost = false;
+                if (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("Role"))
+                {
+                    string role = (string)PhotonNetwork.LocalPlayer.CustomProperties["Role"];
+                    isHost = (role == "Spectator");
+                }
+                if (PhotonNetwork.IsMasterClient) isHost = true;
+
+                nextButton.SetActive(isHost);
+            }
+        }
+        else
+        {
+            if (intermissionPanel != null)
+                intermissionPanel.SetActive(false);
+
+            if (nextButton != null)
+                nextButton.SetActive(true);
+        }
+
+        isIntermission = true;
     }
 
     public void LoadNextSceneManual()
@@ -109,10 +174,13 @@ public class GameTimer : MonoBehaviour
 
     void LoadNextScene()
     {
+        if (intermissionPanel != null)
+            intermissionPanel.SetActive(false);
+
         string sceneToLoad = string.IsNullOrEmpty(nextSceneName) ? "SummaryScene" : nextSceneName;
         Debug.Log("Loading scene: " + sceneToLoad);
 
-        if (PhotonNetwork.IsConnected && PhotonNetwork.InRoom)
+        if (!isSinglePlayer && PhotonNetwork.IsConnected && PhotonNetwork.InRoom)
         {
             if (PhotonNetwork.IsMasterClient)
             {

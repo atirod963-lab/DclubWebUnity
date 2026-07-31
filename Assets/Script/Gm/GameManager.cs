@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     [Header("UI Views")]
     public GameObject playerViewPanel;
     public GameObject hostViewPanel;
+    public GameObject playerPersonalScoreUI;
 
     [Header("Host Score UI")]
     public TextMeshProUGUI greenScoreText;
@@ -28,7 +29,6 @@ public class GameManager : MonoBehaviourPunCallbacks
     public GameObject[] greenTeamPopUps;
     public GameObject[] redTeamPopUps;
 
-    // 🌟 [เพิ่มช่องรับ Prefab ตัวเลขเด้งบนหน้า Host]
     [Header("Floating Score Prefabs (Host)")]
     public GameObject plusScorePrefab;
     public GameObject minusScorePrefab;
@@ -68,6 +68,8 @@ public class GameManager : MonoBehaviourPunCallbacks
             if (playerViewPanel != null) playerViewPanel.SetActive(true);
             if (hostViewPanel != null) hostViewPanel.SetActive(false);
 
+            if (playerPersonalScoreUI != null) playerPersonalScoreUI.SetActive(true);
+
             if (TouchManager2D.Instance != null)
             {
                 currentGreenScore = TouchManager2D.Instance.score;
@@ -84,6 +86,8 @@ public class GameManager : MonoBehaviourPunCallbacks
 
             if (playerViewPanel != null) playerViewPanel.SetActive(!isHost);
             if (hostViewPanel != null) hostViewPanel.SetActive(isHost);
+
+            if (playerPersonalScoreUI != null) playerPersonalScoreUI.SetActive(!isHost);
         }
 
         if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("GlobalGreenScore"))

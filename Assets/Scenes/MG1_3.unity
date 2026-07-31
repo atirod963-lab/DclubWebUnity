@@ -482,7 +482,11 @@ MonoBehaviour:
   timerText: {fileID: 732412300}
   nextSceneName: SummaryScene
   intermissionTime: 30
-  nextStageButton: {fileID: 985711902}
+  singlePlayerIntermissionTime: 0
+  intermissionPanel: {fileID: 0}
+  intermissionGreenText: {fileID: 0}
+  intermissionRedText: {fileID: 0}
+  nextButton: {fileID: 1397768611}
 --- !u!1 &383317479
 GameObject:
   m_ObjectHideFlags: 0
@@ -1322,10 +1326,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
+  m_fontSize: 33.4
   m_fontSizeBase: 36
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -1809,11 +1813,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!1 &985711902 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3890624995505344363, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
-  m_PrefabInstance: {fileID: 844695728}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1115043933
 GameObject:
   m_ObjectHideFlags: 0
@@ -2330,6 +2329,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1393120831}
   m_CullTransparentMesh: 1
+--- !u!1 &1397768611 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3890624995505344363, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
+  m_PrefabInstance: {fileID: 844695728}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1414385211
 GameObject:
   m_ObjectHideFlags: 0
@@ -2966,7 +2970,7 @@ MonoBehaviour:
   m_fontSize: 36
   m_fontSizeBase: 36
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
