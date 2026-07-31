@@ -2923,7 +2923,7 @@ PrefabInstance:
     - target: {fileID: 634797403609904248, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
       propertyPath: minusScorePrefab
       value: 
-      objectReference: {fileID: 165403471623978395, guid: f99701877f66c264b9c73b83885247ce, type: 3}
+      objectReference: {fileID: 8620510120605648311, guid: a757180c75cc8864b9e65f051aa96dad, type: 3}
     - target: {fileID: 634797403609904248, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
       propertyPath: redTeamPopUps.Array.size
       value: 5
