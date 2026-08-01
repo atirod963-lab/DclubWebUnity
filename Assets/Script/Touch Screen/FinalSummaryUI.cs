@@ -73,7 +73,7 @@ public class FinalSummaryUI : MonoBehaviourPunCallbacks
         }
         else if (players.Count > 0)
         {
-            winnerNameText.text = $"🏆 {players[0].NickName} WIN! 🏆";
+            winnerNameText.text = $" {players[0].NickName} WIN! ";
             topWinnerName = players[0].NickName;
             topScore = GetScore(players[0]);
 
