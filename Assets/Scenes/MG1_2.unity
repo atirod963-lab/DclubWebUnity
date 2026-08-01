@@ -1361,11 +1361,11 @@ PrefabInstance:
     - target: {fileID: 634797403609904248, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
       propertyPath: 'redTeamPopUps.Array.data[0]'
       value: 
-      objectReference: {fileID: 1110006348}
+      objectReference: {fileID: 0}
     - target: {fileID: 634797403609904248, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
       propertyPath: 'greenTeamPopUps.Array.data[0]'
       value: 
-      objectReference: {fileID: 1110006348}
+      objectReference: {fileID: 0}
     - target: {fileID: 1395980993586818360, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
       propertyPath: sceneViewId
       value: 1
@@ -2146,11 +2146,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1054483746}
   m_CullTransparentMesh: 1
---- !u!1 &1110006348 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8165481854156518025, guid: bd473e6c294bf7447a39461f9c09f191, type: 3}
-  m_PrefabInstance: {fileID: 538714980}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1125487077
 GameObject:
   m_ObjectHideFlags: 0
@@ -2737,7 +2732,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1810203704
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2772,7 +2767,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_Color: {r: 0.41509432, g: 0.41509432, b: 0.41509432, a: 0.74509805}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

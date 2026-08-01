@@ -481,7 +481,7 @@ MonoBehaviour:
   timeRemaining: 21
   timerText: {fileID: 732412300}
   nextSceneName: SummaryScene
-  intermissionTime: 30
+  intermissionTime: 0
   singlePlayerIntermissionTime: 0
   intermissionPanel: {fileID: 0}
   intermissionGreenText: {fileID: 0}
