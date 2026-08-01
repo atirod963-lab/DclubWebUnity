@@ -3147,7 +3147,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 305745926}
         m_TargetAssemblyTypeName: GameTimer, Assembly-CSharp
         m_MethodName: LoadNextSceneManual
         m_Mode: 1
