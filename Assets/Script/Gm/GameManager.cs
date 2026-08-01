@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     [Header("Game Mode Settings")]
     public bool isBasketballMode = false;
+    public bool isTrashMode = false;
     public float foodFallDuration = 0.8f;
 
     [Header("UI Views")]
@@ -30,8 +31,11 @@ public class GameManager : MonoBehaviourPunCallbacks
     public GameObject[] redTeamPopUps;
 
     [Header("Floating Score Prefabs (Host)")]
-    public GameObject plusScorePrefab;
-    public GameObject minusScorePrefab;
+    public GameObject plusScoreGreenPrefab; // 🌟 ใส่ Prefab รูป +1 สีเขียวตรงนี้
+    public GameObject plusScoreRedPrefab;   // 🌟 ใส่ Prefab รูป +1 สีแดงตรงนี้
+
+    [Header("Trash Minigame Animations (Host)")]
+    public GameObject[] trashAnimPrefabs;   // 🌟 ใส่ Prefab อนิเมชันถังขยะตรงนี้ (ตั้ง Size=1 แล้วใส่ขยะของรอบนั้นๆ)
 
     private int currentGreenScore = 0;
     private int currentRedScore = 0;
@@ -156,22 +160,31 @@ public class GameManager : MonoBehaviourPunCallbacks
             }
         }
 
-        // 🌟 [เพิ่มระบบเสกตัวเลข +1 บนหน้า Host]
-        if (isHost && plusScorePrefab != null && Camera.main != null)
+        if (isHost && Camera.main != null)
         {
-            // สุ่มเกิดฝั่งซ้าย (0.1 ถึง 0.4) สำหรับทีมเขียว และฝั่งขวา (0.6 ถึง 0.9) สำหรับทีมแดง
-            float randomX = (team == "Green") ? Random.Range(0.1f, 0.4f) : Random.Range(0.6f, 0.9f);
-            float randomY = Random.Range(0.3f, 0.7f);
-
-            // แปลงพิกัดจากหน้าจอให้เป็นพิกัดโลก (World Space)
-            Vector3 spawnPos = Camera.main.ViewportToWorldPoint(new Vector3(randomX, randomY, Mathf.Abs(Camera.main.transform.position.z)));
-
-            GameObject floatingText = Instantiate(plusScorePrefab, spawnPos, Quaternion.identity);
-            TextMeshPro tmpro = floatingText.GetComponent<TextMeshPro>();
-            if (tmpro != null)
+            // 🌟 1. เสกรูป +1 ตามสีทีม (เสกเสมอทุกมินิเกม เพื่อให้รู้ว่าใครได้แต้ม)
+            GameObject scorePrefab = (team == "Green") ? plusScoreGreenPrefab : plusScoreRedPrefab;
+            if (scorePrefab != null)
             {
-                // เปลี่ยนสีตามทีม
-                tmpro.color = (team == "Green") ? Color.green : Color.red;
+                float randomX = (team == "Green") ? Random.Range(0.1f, 0.4f) : Random.Range(0.6f, 0.9f);
+                float randomY = Random.Range(0.3f, 0.7f);
+                Vector3 spawnPos = Camera.main.ViewportToWorldPoint(new Vector3(randomX, randomY, Mathf.Abs(Camera.main.transform.position.z)));
+                Instantiate(scorePrefab, spawnPos, Quaternion.identity);
+            }
+
+            // 🌟 2. ถ้าเป็นโหมดถังขยะ ให้เสกอนิเมชันถังขยะระเบิดขึ้นมาด้วย
+            if (isTrashMode && trashAnimPrefabs != null && trashAnimPrefabs.Length > 0)
+            {
+                int randomAnimIndex = Random.Range(0, trashAnimPrefabs.Length);
+                GameObject animPrefab = trashAnimPrefabs[randomAnimIndex];
+                if (animPrefab != null)
+                {
+                    // เสกอนิเมชันให้อยู่บริเวณกลางๆ จอค่อนไปทางขวาหรือซ้ายนิดหน่อย
+                    float animX = Random.Range(0.2f, 0.8f);
+                    float animY = Random.Range(0.2f, 0.6f);
+                    Vector3 animPos = Camera.main.ViewportToWorldPoint(new Vector3(animX, animY, Mathf.Abs(Camera.main.transform.position.z)));
+                    Instantiate(animPrefab, animPos, Quaternion.identity);
+                }
             }
         }
 
@@ -227,25 +240,6 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             currentRedScore--;
             StartCoroutine(ScorePopTrick(redScoreText, Color.gray));
-        }
-
-        // 🌟 [เพิ่มระบบเสกตัวเลข -1 บนหน้า Host]
-        if (isHost && minusScorePrefab != null && Camera.main != null)
-        {
-            // สุ่มเกิดฝั่งซ้าย (0.1 ถึง 0.4) สำหรับทีมเขียว และฝั่งขวา (0.6 ถึง 0.9) สำหรับทีมแดง
-            float randomX = (team == "Green") ? Random.Range(0.1f, 0.4f) : Random.Range(0.6f, 0.9f);
-            float randomY = Random.Range(0.3f, 0.7f);
-
-            // แปลงพิกัดจากหน้าจอให้เป็นพิกัดโลก (World Space)
-            Vector3 spawnPos = Camera.main.ViewportToWorldPoint(new Vector3(randomX, randomY, Mathf.Abs(Camera.main.transform.position.z)));
-
-            GameObject floatingText = Instantiate(minusScorePrefab, spawnPos, Quaternion.identity);
-            TextMeshPro tmpro = floatingText.GetComponent<TextMeshPro>();
-            if (tmpro != null)
-            {
-                // เปลี่ยนสีตามทีม
-                tmpro.color = (team == "Green") ? Color.green : Color.red;
-            }
         }
 
         UpdateScoreUI();
@@ -337,7 +331,13 @@ public class GameManager : MonoBehaviourPunCallbacks
         float endY;
         float animDuration;
 
-        if (isBasketballMode)
+        if (isTrashMode)
+        {
+            startY = -800f;
+            endY = Random.Range(-100f, 200f);
+            animDuration = 0.5f;
+        }
+        else if (isBasketballMode)
         {
             startY = Random.Range(-300f, 300f);
             endY = startY;

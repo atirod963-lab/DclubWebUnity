@@ -318,6 +318,14 @@ PrefabInstance:
       propertyPath: minusScorePrefab
       value: 
       objectReference: {fileID: 8620510120605648311, guid: a757180c75cc8864b9e65f051aa96dad, type: 3}
+    - target: {fileID: 634797403609904248, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
+      propertyPath: plusScoreRedPrefab
+      value: 
+      objectReference: {fileID: 8620510120605648311, guid: a757180c75cc8864b9e65f051aa96dad, type: 3}
+    - target: {fileID: 634797403609904248, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
+      propertyPath: plusScoreGreenPrefab
+      value: 
+      objectReference: {fileID: 8620510120605648311, guid: 1f6a690dfc78fc5448cc69af4bfec416, type: 3}
     - target: {fileID: 1395980993586818360, guid: b8d8179793479af41a68151e5e4042ff, type: 3}
       propertyPath: sceneViewId
       value: 1
