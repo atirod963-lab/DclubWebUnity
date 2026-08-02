@@ -48,6 +48,12 @@ public class GameTimer : MonoBehaviour
             nextButton.SetActive(false);
 
         isSinglePlayer = PlayerPrefs.GetInt("IsSoloGame", 0) == 1;
+
+        if (!PhotonNetwork.InRoom)
+        {
+            isSinglePlayer = true;
+        }
+
         if (isSinglePlayer)
         {
             intermissionTime = singlePlayerIntermissionTime;
@@ -123,21 +129,19 @@ public class GameTimer : MonoBehaviour
         if (!isSinglePlayer && PhotonNetwork.InRoom)
         {
             if (intermissionPanel != null)
-            {
                 intermissionPanel.SetActive(true);
 
-                int gScore = 0;
-                int rScore = 0;
+            int gScore = 0;
+            int rScore = 0;
 
-                if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("GlobalGreenScore"))
-                    gScore = (int)PhotonNetwork.CurrentRoom.CustomProperties["GlobalGreenScore"];
+            if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("GlobalGreenScore"))
+                gScore = (int)PhotonNetwork.CurrentRoom.CustomProperties["GlobalGreenScore"];
 
-                if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("GlobalRedScore"))
-                    rScore = (int)PhotonNetwork.CurrentRoom.CustomProperties["GlobalRedScore"];
+            if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("GlobalRedScore"))
+                rScore = (int)PhotonNetwork.CurrentRoom.CustomProperties["GlobalRedScore"];
 
-                if (intermissionGreenText != null) intermissionGreenText.text = "Score: " + gScore;
-                if (intermissionRedText != null) intermissionRedText.text = "Score: " + rScore;
-            }
+            if (intermissionGreenText != null) intermissionGreenText.text = "Score: " + gScore;
+            if (intermissionRedText != null) intermissionRedText.text = "Score: " + rScore;
 
             if (nextButton != null)
             {
@@ -166,7 +170,7 @@ public class GameTimer : MonoBehaviour
 
     public void LoadNextSceneManual()
     {
-        if (PhotonNetwork.InRoom && !PhotonNetwork.IsMasterClient) return;
+        if (!isSinglePlayer && PhotonNetwork.InRoom && !PhotonNetwork.IsMasterClient) return;
 
         isIntermission = false;
         LoadNextScene();
